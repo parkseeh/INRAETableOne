@@ -27,4 +27,3 @@ INRAETableOne.formula <- function(formula, data, ... ) {
 
 }
 
-

@@ -1,77 +1,47 @@
-#' Title
+#' Perform Chisq Test or Fisher's Exat Test
 #'
-#' @param x
-#' @param y
-#' @param paired
+#' @description This function calculates the p-value for the
+#' categorical variable according to the different tpye of data.
+#' @param x A categorical vector
+#' @param y A Categorical vector
+#' @param paired If TRUE, then perform Mcnemar Test.
 #'
-#' @return
+#' @importFrom stats mcnemar.test chisq.test fisher.test
+#' @return Return the p value for categorical contingency table
 #' @export
-#'
-#' @examples
-perform.chisq.test <- function(x, y, paired = FALSE) {
-    contingency.table <- table(x, y)
-
-    if (dim(contingency.table)[2] == 1){
-        p.value <- NA
-    } else {
-        tryCatch ({
-            p.value <- chisq.test(contingency.table)$p.value
-            return(p.value)
-
-        }, warning = function(w) {
-            p.value <- fisher.test(contingency.table)$p.value
-            message("Use Fisher Test, because the expected value < 5 are over 25% of overall contengency table")
-            return(p.value)
-
-        }, error = function(e) {
-            p.value <- 1
-            return(p.value)
-        })
-    }
-    return(p.value)
-}
-
-
-#' Title
-#'
-#' @param x
-#' @param y
-#' @param paired
-#'
-#' @return
-#' @export
-#'
-#' @examples
 perform.chisq.test <- function(x, y, paired = FALSE) {
     contingency.table <- table(x, y)
 
     if (dim(contingency.table)[2] == 1){
         p.value <- NA
         return(p.value)
+
     } else {
         if (paired == TRUE) {
-            p.value <- mcnemar.test(contingency.table)$p.value
+            if (all(dim(contingency.table) == c(2,2))){
+                p.value <- mcnemar.test(contingency.table)$p.value
+                return(p.value)
+            } else {
+                message("The contingency table is not 2 X 2 matrix. You need to put paired == TRUE instead")
+                return(invisible())
+            }
+
         } else {
-            tryCatch ({
-                p.value <- chisq.test(contingency.table)$p.value
+            p.value <- tryCatch (
+                expr = {
+                    p.value <- chisq.test(contingency.table)$p.value
 
-            }, warning = function(w) {
-                p.value <- fisher.test(contingency.table)$p.value
-                message("Use Fisher Test, because the expected value < 5 are over 25% of overall contengency table")
-
-            }, error = function(e) {
-                p.value <- 1
-            })
+                },
+                warning = function(w) {
+                    message("Fisher Test used, because the expected value < 5 are over 25% of overall contengency table")
+                    p.value <- fisher.test(contingency.table, simulate.p.value=TRUE)$p.value
+                },
+                error = function(e) {
+                    p.value <- 1
+                }
+            )
         }
         return(p.value)
     }
 }
-
-
-
-
-
-
-
-
 

@@ -14,7 +14,7 @@ perform.chisq.test(x, y, paired = FALSE)
 \item{paired}{If TRUE, then perform Mcnemar Test.}
 }
 \value{
-return the p value for categorical contingency table
+Return the p value for categorical contingency table
 }
 \description{
 This function calculates the p-value for the

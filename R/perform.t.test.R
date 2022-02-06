@@ -29,7 +29,7 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
 
     }
 
-    if (sample.size < 30) {
+    if (sample.size < minimum.sample.size) {
         if (verbose == TRUE) {
             printLog(paste0("* We have sample size of ", sample.size))
             printLog(paste0("** Since sample size is smaller than 30",
@@ -45,16 +45,13 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
                 if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Wilcox's Test
                     p.value.vector <- wilcox.test(x ~ y)$p.value
                 } else {
-                    p.value.vector <- t.test(x ~ y)$p.value
+                    p.value.vector <- t.test(x ~ y, paired = TRUE)$p.value
                 }
             } else {
-
                 variance.test <- var.test(x ~ y) # test homogeneity
-
                 if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Mann Whitney U test
                     p.value.vector <- wilcox.test(x ~ y)$p.value
                 } else {
-
                     if (variance.test$p.value < 0.05) { #variance are not homogeneity
                         p.value.vector <- t.test(x ~ y, na.rm = TRUE)$p.value
                     } else {

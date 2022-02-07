@@ -4,7 +4,15 @@
 \alias{createTable}
 \title{Title}
 \usage{
-createTable(x, y, data, show.total = FALSE, paired = FALSE, verbose = FALSE)
+createTable(
+  x,
+  y,
+  data,
+  show.total = FALSE,
+  paired = FALSE,
+  missing = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{verbose}{}

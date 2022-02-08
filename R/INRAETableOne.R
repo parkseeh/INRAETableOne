@@ -39,7 +39,7 @@ INRAETableOne.formula <- function(formula,
                                   show.missing = TRUE,
                                   verbose = FALSE) {
 
-    # data <- acs ; formula <- Dx ~ .
+    # data <- acs1 ; formula <- Dx ~ .
     model.terms <- terms(formula, data = data)
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
@@ -76,10 +76,13 @@ INRAETableOne.formula <- function(formula,
     }
 
     result1 <- makeTableOne(result, digits = 1)
-    #class(result1) <- 'INRAETableOne'
+    class(result1) <- 'INRAETableOne'
     return(result1)
 
 }
+
+
+
 
 #' Create the summary table
 #'
@@ -102,22 +105,29 @@ createSummary <- function(x,
                           paired = FALSE,
                           show.missing = TRUE,
                           verbose = FALSE) {
-    # data=acs1; y="Dx"; x="sex"; show.total=F; paired=F; show.missing=T; verbose=F
+    # data=acs1; y="Dx"; x="smoking"; show.total=F; paired=F; show.missing=T; verbose=F
     df <- data.frame(y = data[[y]], x = data[[x]])
 
     if (show.missing == TRUE) { # missing shown
-        #df <- na.omit(df)
-        contingency.table <- table(df$x, df$y, useNA = 'ifany')
+        if (any(is.na(df))) {
+            contingency.table <- table(df$x, df$y, useNA = 'ifany')
+            dimnames(contingency.table)[[1]][nrow(contingency.table)] <- 'Missing'
+        } else {
+            contingency.table <- table(df$x, df$y)
+        }
+        #
+
         contingency.table.with.total <- addmargins(contingency.table, 2)
         total.number <- sum(contingency.table)
-        dimnames(contingency.table)[[1]][length(contingency.table)] <- 'Missing'
+
     } else {
         contingency.table <- table(df$x, df$y)
         contingency.table.with.total <- addmargins(contingency.table, 2)
         total.number <- sum(contingency.table)
     }
 
-    x.level <- length(unique(data[[x]]))
+    #x.level <- length(unique(data[[x]]))
+    x.level <- nrow(contingency.table)
     variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
 
     if (variable.class == 'continuous') {
@@ -126,6 +136,7 @@ createSummary <- function(x,
             calculated.summary.list[[length(calculated.summary.list) + 1]] <- calculateSummary(data[[x]])
             names(calculated.summary.list)[length(calculated.summary.list)] <- 'Total'
         }
+        df <- na.omit(df)
         p.value <- perform.t.test(x = df$x, y = df$y, paired = paired)
         result <- list(class = variable.class,
                        count = total.number,
@@ -172,11 +183,17 @@ makeTableOne <- function(obj, digits = 1) {
     p.value <- c()
 
     fmt <- sprintf("%s%df","%4.",digits)
+    mean.sd <- paste0("Mean ", plusminus, " SD")
+    median.min.max <- paste0("Median [Min;Max]")
+
     initial.matrix <- matrix(NA, ncol = obj$length)
     colnames(initial.matrix) <- obj$names
 
     for (i in 5:length(obj)) {
         variable.names <- c(variable.names, names(obj)[i])
+
+
+
         subgroup.names <- c(subgroup.names, "")
         variable.class <- c(variable.class, obj[[i]]$class)
         total.count <- c(total.count, obj[[i]]$count)
@@ -184,19 +201,52 @@ makeTableOne <- function(obj, digits = 1) {
         colnames(add.matrix) <- obj$names
 
         if (obj[[i]]$class == 'continuous') {
-            for (j in 1:obj$length) {
-                temp <- paste(sprintf(fmt, obj[[i]]$summary.list[[j]][[1]]),
-                              plusminus,
-                              sprintf(fmt, obj[[i]]$summary.list[[j]][[2]]),
-                              sep = " ")
-                add.matrix[1, j] <- temp
-            }
+
+            add.matrix <- matrix("", ncol = obj$length)
             if (all(is.na(initial.matrix))) {
                 initial.matrix <- add.matrix
             } else {
                 initial.matrix <- rbind(initial.matrix, add.matrix)
             }
             p.value <- c(p.value, obj[[i]]$p)
+
+            add.matrix <- matrix(NA, nrow = 2, ncol = obj$length)
+
+            for (k in 1:2) {
+                p.value <- c(p.value, NA)
+                variable.class <- c(variable.class, "")
+                total.count <- c(total.count, "")
+                if (k == 1) {
+                    subgroup.names <- c(subgroup.names, mean.sd)
+                } else {
+                    subgroup.names <- c(subgroup.names, median.min.max)
+                }
+                for (j in 1:obj$length) {
+                    if (k == 1) {
+                        temp <- paste(sprintf(fmt, obj[[i]]$summary.list[[j]][[1]]),
+                                      plusminus,
+                                      sprintf(fmt, obj[[i]]$summary.list[[j]][[2]]),
+                                      sep = " ")
+                    } else {
+                        temp <- paste0(sprintf(fmt, obj[[i]]$summary.list[[j]][[3]]),
+                                       "[",
+                                       sprintf(fmt, obj[[i]]$summary.list[[j]][[4]]),
+                                       ";",
+                                       sprintf(fmt, obj[[i]]$summary.list[[j]][[5]]),
+                                       "]")
+                    }
+                    add.matrix[k, j] <- temp
+                }
+                variable.names <- c(variable.names, "")
+            }
+
+
+
+            if (all(is.na(initial.matrix))) {
+                initial.matrix <- add.matrix
+            } else {
+                initial.matrix <- rbind(initial.matrix, add.matrix)
+            }
 
 
         } else if (obj[[i]]$class == 'categorical') {
@@ -235,7 +285,7 @@ makeTableOne <- function(obj, digits = 1) {
     }
     combined.name <- ifelse(subgroup.names == "",
                             variable.names,
-                            paste(variable.names, "   - ", subgroup.names, sep = ""))
+                            paste(variable.names, " - ", subgroup.names, sep = ""))
 
     combined.name <- formatC(combined.name,"%s",flag="-")
     res <- data.frame(name=combined.name)
@@ -265,6 +315,8 @@ makeTableOne <- function(obj, digits = 1) {
 p2sig <- function(value){
     if (is.na(value)) {
         sig <= "   "
+    } else if (value == ""){
+        sig <- "   "
     } else if (value < 0.01) {
         sig = "***"
     } else if (value < 0.05) {
@@ -276,6 +328,103 @@ p2sig <- function(value){
     }
     return(sig)
 }
+
+
+
+#' Title
+#'
+#' @param x
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+lineCount <- function(x, ...) {
+    obj <- x
+    if (obj$show.all == TRUE) {
+        result.table <- obj$res
+    } else {
+        result.table <- obj$res[1:(length(obj$res)-3)]
+    }
+
+    count.total <- obj$count
+    column.names <- colnames(result.table)
+    y <- column.names[1]
+    n.count <- c("", paste0("(n=", count.total,")"))
+    column.names.nchar <- nchar(column.names)
+    column.nchar <- unname(sapply(result.table,function(x) max(nchar(x))))
+    column.length <- apply(rbind(column.names.nchar, column.nchar), 2, max)
+    line.length <- sum(column.length) + length(column.names) - 1
+
+    result <- list(y = y,
+                   res = result.table,
+                   column.names = column.names,
+                   n.counut = n.count,
+                   column.length = column.length,
+                   line.length = line.length)
+
+    return(result)
+
+}
+
+
+
+
+
+#' Title
+#'
+#' @param x
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+print.INRAETableOne <- function(x, ...) {
+    obj <- x
+    result <- lineCount(obj)
+    y <- result$y
+    res <- result$res
+    column.names <- result$column.names
+    n.count <- result$n.counut
+    column.length <- result$column.length
+    line.length <- result$line.length
+    head.line <- paste(rep("_", line.length), collapse = "")
+    tail.line <- paste(rep("-", line.length), collapse = "")
+
+    cat("\n")
+    cat(paste0("Summary descriptives table by '", y, "'"))
+    cat("\n\n")
+    cat(head.line, "\n")
+    for (i in 1:length(column.names)) {
+        cat((centerprint(column.names[i], width = column.length[i] )))
+    }
+    cat('\n')
+    for (i in 1:length(n.count)) {
+        cat((centerprint(n.count[i], width = column.length[i])))
+    }
+    cat("\n")
+    cat(tail.line, "\n")
+
+    for (i in 1:dim(res)[1]){
+        for(j in 1:length(column.names)){
+            cat(sapply(res[i,j], centerprint, width = column.length[j]))
+        }
+        cat("\n")
+    }
+}
+
+
+
+
+print.INRAETableOne(obj)
+
+
+
+INRAETableOne(Dx ~ ., acs1, show.missing = F, show.total = F)
+mytable(Dx ~ ., acs, show.total=F) -> g
+g$res[1:(length(g$res)-7)]
 
 makeTableOne(obj = result, digit = 1)
 

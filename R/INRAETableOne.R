@@ -106,7 +106,7 @@ createSummary <- function(x,
                           paired = FALSE,
                           show.missing = TRUE,
                           verbose = FALSE) {
-    # data=acs1; y="Dx"; x="smoking"; show.total=F; paired=F; show.missing=T; verbose=F
+    # data=acs; y="Dx"; x="height"; show.total=F; paired=F; show.missing=T; verbose=F
     df <- data.frame(y = data[[y]], x = data[[x]])
 
     if (show.missing == TRUE) { # missing shown
@@ -116,7 +116,7 @@ createSummary <- function(x,
         } else {
             contingency.table <- table(df$x, df$y)
         }
-        #
+
 
         contingency.table.with.total <- addmargins(contingency.table, 2)
         total.number <- sum(contingency.table)
@@ -127,7 +127,6 @@ createSummary <- function(x,
         total.number <- sum(contingency.table)
     }
 
-    #x.level <- length(unique(data[[x]]))
     x.level <- nrow(contingency.table)
     variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
 
@@ -183,9 +182,9 @@ makeTableOne <- function(obj, digits = 1) {
     total.count <- c()
     p.value <- c()
 
-    fmt <- sprintf("%s%df","%4.",digits)
+    fmt <- sprintf("%s%df","%3.",digits)
     mean.sd <- paste0("Mean ", plusminus, " SD")
-    median.min.max <- paste0("Median [Min;Max]")
+    median.min.max <- paste0("Med [Min;Max]")
 
     initial.matrix <- matrix(NA, ncol = obj$length)
     colnames(initial.matrix) <- obj$names
@@ -389,6 +388,7 @@ lineCount <- function(x, ...) {
     count.total <- obj$count
     column.names <- colnames(result.table)
     y <- column.names[1]
+    column.names[1] <- ""
     n.count <- c("", paste0("(n=", count.total,")"))
     column.names.nchar <- nchar(column.names)
     column.nchar <- unname(sapply(result.table,function(x) max(nchar(x))))
@@ -428,26 +428,26 @@ print.INRAETableOne <- function(x, ...) {
     n.count <- result$n.counut
     column.length <- result$column.length
     line.length <- result$line.length
-    head.line <- paste(rep("_", line.length), collapse = "")
-    tail.line <- paste(rep("-", line.length), collapse = "")
+    head.line <- paste(rep("_", line.length+1), collapse = "")
+    tail.line <- paste(rep("-", line.length+1), collapse = "")
 
     cat("\n")
     cat(paste0("Summary descriptives table by '", y, "'"))
     cat("\n\n")
     cat(head.line, "\n")
     for (i in 1:length(column.names)) {
-        cat((centerprint(column.names[i], width = column.length[i] )))
+        cat((centerprint(column.names[i], width = column.length[i]+1)))
     }
     cat('\n')
     for (i in 1:length(n.count)) {
-        cat((centerprint(n.count[i], width = column.length[i])))
+        cat((centerprint(n.count[i], width = column.length[i]+1)))
     }
     cat("\n")
     cat(tail.line, "\n")
 
     for (i in 1:dim(res)[1]){
         for(j in 1:length(column.names)){
-            cat(sapply(res[i,j], centerprint, width = column.length[j]))
+            cat(sapply(res[i,j], centerprint, width = column.length[j] + 1))
         }
         cat("\n")
     }

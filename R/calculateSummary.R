@@ -1,7 +1,7 @@
 #' Calculate the summary statistics for each
 #'
 #' @param x A numeric vector
-#' @importFrom stats mean sd median min max
+#' @importFrom stats sd median
 #' @return A list containing the values of mean, standard deviation, median,
 #' minimum, and maximum.
 #' @export

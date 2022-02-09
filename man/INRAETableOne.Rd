@@ -2,15 +2,29 @@
 % Please edit documentation in R/INRAETableOne.R
 \name{INRAETableOne}
 \alias{INRAETableOne}
+\alias{INRAETableOne.formula}
 \title{Produces the descriptive summary table}
 \usage{
 INRAETableOne(x, ...)
+
+\method{INRAETableOne}{formula}(
+  formula,
+  data,
+  show.total = FALSE,
+  paired = FALSE,
+  show.missing = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{x}{A formula indicating the dependent variable(s) on the left hand side, and
 the independent variable(s) on the right hand side.}
 
 \item{...}{More arguments can be added.}
+
+\item{formula}{A formula format}
+
+\item{data}{A \code{data.frame}}
 }
 \description{
 It produces the baseline characteristics table on the dependent variables.
@@ -20,6 +34,11 @@ Also it shows the p-value according to the type of independent variable whether
 perform \code{t.test}, \code{wilcox.test}, \code{kruskal.test}, \code{anova} if continuous,
  or \code{chisq.test}, \code{fisher.test} if categorical.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{formula}: The \code{formula} interface.
+}}
+
 \examples{
 \dontrun{
 library(INRAETableOne)

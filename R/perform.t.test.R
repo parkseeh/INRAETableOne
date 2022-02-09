@@ -8,7 +8,7 @@
 #' @param paired Boolean whether perform paired t-test or not
 #' @param verbose True as default
 #'
-#' @importFrom stats lm shapiro.test resid, var.test t.test kruskal.test anova wilcox.test
+#' @importFrom stats lm shapiro.test resid var.test t.test kruskal.test anova wilcox.test
 #' @return A p-value vector according to the different type of data.
 #' @export
 #' @example

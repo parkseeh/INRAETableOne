@@ -30,7 +30,7 @@ INRAETableOne <- function(x, ...) {
 #'
 #' @param formula A formula format
 #' @param data A \code{data.frame}
-#'
+#' @describeIn INRAETableOne The \code{formula} interface.
 #' @export
 INRAETableOne.formula <- function(formula,
                                   data,
@@ -39,7 +39,7 @@ INRAETableOne.formula <- function(formula,
                                   show.missing = TRUE,
                                   verbose = FALSE) {
 
-    # data <- acs1 ; formula <- Dx ~ .
+    # data <- read.csv('acs1.csv') ; formula <- Dx ~ .
     model.terms <- terms(formula, data = data)
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
@@ -56,7 +56,8 @@ INRAETableOne.formula <- function(formula,
     result <- list(y = y,
                    names = names(y.table),
                    count = unname(y.table),
-                   length = length(y.table))
+                   length = length(y.table),
+                   show.total = show.total)
     x.variables <- labels(model.terms)
 
     for (x.variable in x.variables) {
@@ -189,7 +190,7 @@ makeTableOne <- function(obj, digits = 1) {
     initial.matrix <- matrix(NA, ncol = obj$length)
     colnames(initial.matrix) <- obj$names
 
-    for (i in 5:length(obj)) {
+    for (i in 6:length(obj)) {
         variable.names <- c(variable.names, names(obj)[i])
 
 
@@ -304,7 +305,7 @@ makeTableOne <- function(obj, digits = 1) {
 
     result <- list(res = res,
                    count = obj$count,
-                   show.all = show.all)
+                   show.total = obj$show.total)
     return(result)
 
 }
@@ -330,6 +331,43 @@ p2sig <- function(value){
 }
 
 
+#' @export
+centerprint=function(x,...,width=10){
+
+    mwidth=max(nchar(x),width)
+    sp=(mwidth-nchar(x))/2
+    front=end=""
+    front=space(ceiling(sp))
+    end=space(floor(sp))
+    x=paste(front,x,end,sep="")
+    x
+}
+
+#' Internal mytable functions
+#'
+#' Internal mytable functions
+#' These are not to be called by the user
+#' @param num an integer
+space=function(num){
+    ret=c()
+    if(num <1) return(ret)
+    for(i in 1:num) ret=paste(" ",ret,sep="")
+    ret
+}
+
+#' Internal mytable functions
+#'
+#' Internal mytable functions
+#' These are not to be called by the user
+#' @param x a character vector
+#' @param times an integer
+#' @export
+reprint=function(x,times){
+    ret=x
+    if(times<=1) return(x)
+    for(i in 1:times) ret=paste(ret,x,sep="")
+    ret
+}
 
 #' Title
 #'
@@ -342,7 +380,7 @@ p2sig <- function(value){
 #' @examples
 lineCount <- function(x, ...) {
     obj <- x
-    if (obj$show.all == TRUE) {
+    if (obj$show.total == TRUE) {
         result.table <- obj$res
     } else {
         result.table <- obj$res[1:(length(obj$res)-3)]
@@ -413,189 +451,10 @@ print.INRAETableOne <- function(x, ...) {
         }
         cat("\n")
     }
+    cat(tail.line, '\n\n')
 }
 
 
 
 
-print.INRAETableOne(obj)
-
-
-
-INRAETableOne(Dx ~ ., acs1, show.missing = F, show.total = F)
-mytable(Dx ~ ., acs, show.total=F) -> g
-g$res[1:(length(g$res)-7)]
-
-makeTableOne(obj = result, digit = 1)
-
-gg <- c()
-gg <- c(gg, 3)
-gg <- c(gg, NA)
-
-gg <- c(gg, "")
-
-
-
-
-
-
-aa=list(y=labely1,length=length(t),names=names(t),count=unname(t),method=method,show.all=show.all)
-for(i in 1:length(x)) {
-
-    out<-mytable_sub2(y1,x[i],data,max.ylev,maxCatLevel,method=method,catMethod=catMethod,show.total=show.total,origData=data)
-
-    if(length(out)!=4) {
-        error=c(error,x[i])
-        next
-    }
-    label=getLabel(data,x[i],use.column.label)
-    aa[[label]]=out
-}
-
-
-
-obj <- aa
-plusminus="\u00b1"
-cl=c()
-N=c()
-varnames=c()
-subnames=c()
-p1=p2=p3=p4=c()
-ptest=c()
-desc=matrix(,ncol=obj$length)
-
-colnames(desc)=obj$names
-
-fmt=sprintf("%s%df","%4.",digits)
-fmt
-#str(obj)
-for(i in 7:12){
-    varnames=c(varnames,names(obj)[i])
-    subnames=c(subnames,"")
-    cl=c(cl,obj[[i]][1])
-    N=c(N,obj[[i]][2])
-    add=matrix(,ncol=obj$length)
-
-    # if numeric
-    if(obj[[i]]$class=="continuous"){
-        for(j in 1:obj$length){
-            if(is.na(obj[[i]]$out[[j]][[1]])) temp1="    -"
-            else temp1=paste(sprintf(fmt,obj[[i]]$out[[j]][[1]]),plusminus,
-                             sprintf(fmt,obj[[i]]$out[[j]][[2]]),sep=" ")
-            if(is.na(obj[[i]]$out[[j]][[6]][3])) temp2="    -"
-            else temp2=paste(sprintf(fmt,obj[[i]]$out[[j]][[6]][3])," [",
-                             sprintf(fmt,obj[[i]]$out[[j]][[6]][2]),";",
-                             sprintf(fmt,obj[[i]]$out[[j]][[6]][4]),"]",sep="")
-            if(obj$method==1) temp=temp1
-            else if(obj$method==2) temp=temp2
-            else if(obj$method==3) {
-                if(is.na(obj[[i]]$p[1])){
-                    temp=temp2
-                } else if(obj[[i]]$p[1]<=0.05) {
-                    temp=temp2
-                } else {
-                    temp=temp1
-                }
-            }
-            add[1,j]=temp
-
-        }
-        if(all(is.na(desc))) desc=add
-        else desc=rbind(desc,add)
-        p1=c(p1,obj[[i]]$p[1])
-        p2=c(p2,obj[[i]]$p[2])
-        p3=c(p3,obj[[i]]$p[3])
-        if(obj$method==1) {
-            p4=c(p4,obj[[i]]$p[2])
-            ptest=c(ptest,"normal")
-        }
-        else if(obj$method==2) {
-            p4=c(p4,obj[[i]]$p[3])
-            ptest=c(ptest,"non-normal")
-        }
-        else if(obj$method==3) {
-            if(is.na(obj[[i]]$p[1])) {
-                p4=c(p4,obj[[i]]$p[3])
-                ptest=c(ptest,"non-normal")
-            } else if(obj[[i]]$p[1]<=0.05) {
-                p4=c(p4,obj[[i]]$p[3])
-                ptest=c(ptest,"non-normal")
-            } else{
-                p4=c(p4,obj[[i]]$p[2])
-                ptest=c(ptest,"normal")
-            }
-        }
-    }
-    # if factor
-    else if(obj[[i]]$class=="categorical"){          ##if(obj[[i]]$class=="categorical")
-        add=matrix(,ncol=obj$length)
-        for(j in 1:obj$length){
-            add[1,j]=""
-        }
-        if(all(is.na(desc))) desc=add
-        else desc=rbind(desc,add)
-
-        p1=c(p1,obj[[i]]$p[1])
-        p2=c(p2,obj[[i]]$p[2])
-        p3=c(p3,length(obj[[i]]$subgroup))
-        #p3=c(p3,NA)
-        p4=c(p4,obj[[i]]$p[1])
-        ptest=c(ptest,attr(obj[[i]]$p,"method"))
-        for(k in 1:length(obj[[i]]$subgroup)){
-            temp=names(obj[[i]]$subgroup)[k]
-            varnames=c(varnames,"")
-            subnames=c(subnames,temp)
-            cl=c(cl,"")
-            N=c(N,"")
-            p1=c(p1,NA)
-            p2=c(p2,NA)
-            p3=c(p3,NA)
-            p4=c(p4,NA)
-            ptest=c(ptest,"")
-            add=matrix(,ncol=obj$length)
-            for(j in 1:obj$length){
-                if(is.na(obj[[i]]$subgroup[[k]]$count[j])) temp="   -"
-                else if(obj[[i]]$subgroup[[k]]$count[j]==0) temp=" 0 ( 0.0%)"
-                else temp=paste(obj[[i]]$subgroup[[k]]$count[j]," (",
-                                sprintf(fmt,obj[[i]]$subgroup[[k]]$ratio[j]),"%)",sep="")
-                add[1,j]=temp
-            }
-            if(all(is.na(desc))) desc=add
-            else desc=rbind(desc,add)
-        }
-    }
-    else{   ##if(obj[[i]]$class=="categorical2")
-        for(j in 1:obj$length){
-            add[1,j]=obj[[i]]$subgroup
-        }
-        if(all(is.na(desc))) desc=add
-        else desc=rbind(desc,add)
-        p1=c(p1,NA)
-        p2=c(p2,NA)
-        p3=c(p3,NA)
-        p4=c(p4,NA)
-        ptest=c(ptest,"")
-    }
-}
-
-nname=ifelse(subnames=="",varnames,paste(varnames,"  - ",subnames,sep=""))
-nname=formatC(nname,"%s",flag="-")
-#options(stringsAsFactors=FALSE)
-res=data.frame(name=nname)
-for(j in 1:obj$length){
-    res=data.frame(res,desc[,j])
-    #colnames(res)[length(res)]=obj$names[j]
-}
-sp1=sapply(p1,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
-sp2=sapply(p2,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
-sp3=sapply(p3,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
-sp4=sapply(p4,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
-sig=sapply(p4,p2sig)
-# str(res)
-# str(ptest)
-res=data.frame(res,p=sp4,sig,p1=sp1,p2=sp2,p3=sp3,class=unlist(cl),ptest=ptest,N=unlist(N))
-#rownames(res)=names(obj)[4:length(obj)]
-colnames(res)[2:(2+length(obj$names)-1)]=obj$names
-if(length(obj$y)==1) colnames(res)[1]=obj$y
-result=list(res=res,count=obj$count,method=obj$method,show.all=obj$show.all)
 

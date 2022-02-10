@@ -78,7 +78,7 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
             }
 
 
-
+            summary(aov(d.m$value~d.m$time+Error(d.m$id/d.m$time)) )
 
 
 

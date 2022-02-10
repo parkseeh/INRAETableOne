@@ -9,7 +9,7 @@
 #' @importFrom stats mcnemar.test chisq.test fisher.test
 #' @return Return the p value for categorical contingency table
 #' @export
-perform.chisq.test <- function(x, y, paired = FALSE) {
+perform.chisq.test <- function(x, y, paired = FALSE, verbose = FALSE) {
     contingency.table <- table(x, y)
 
     if (dim(contingency.table)[2] == 1){
@@ -22,18 +22,23 @@ perform.chisq.test <- function(x, y, paired = FALSE) {
                 p.value <- mcnemar.test(contingency.table)$p.value
                 return(p.value)
             } else {
-                message("The contingency table is not 2 X 2 matrix. You need to put paired == TRUE instead")
-                return(invisible())
+                if (verbose == TRUE) {
+                    message("The contingency table is not 2 X 2 matrix. Forced to do paired test")
+                }
+                paired = FALSE
+                #return(invisible())
             }
-
-        } else {
+        }
+        if (paired == FALSE) {
             p.value <- tryCatch (
                 expr = {
                     p.value <- chisq.test(contingency.table)$p.value
 
                 },
                 warning = function(w) {
-                    message("Fisher Test used, because the expected value < 5 are over 25% of overall contengency table")
+                    if (verbose == TRUE) {
+                        message("Fisher Test used, because the expected value < 5 are over 25% of overall contengency table")
+                    }
                     p.value <- fisher.test(contingency.table, simulate.p.value=TRUE)$p.value
                 },
                 error = function(e) {
@@ -44,4 +49,5 @@ perform.chisq.test <- function(x, y, paired = FALSE) {
         return(p.value)
     }
 }
+
 

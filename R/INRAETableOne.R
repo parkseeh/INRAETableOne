@@ -94,7 +94,7 @@ INRAETableOne.formula <- function(formula,
 #' @param data A \code{data.frame}
 #' @param paired If \code{paired} is TRUE, then perfrom paired t-test. The default value is \code{FALSE},
 #' @param verbose Print the log message. The default value is \code{FALSE}
-#' @importFrom stats na.omit
+#' @importFrom stats na.omit model.frame
 #' @return A list containing the class of variable, total count of data, and
 #' p-value. In addition, the min, max, median, sd, mean will be produced only
 #' for continuous variable
@@ -102,12 +102,19 @@ INRAETableOne.formula <- function(formula,
 createSummary <- function(x,
                           y,
                           data,
+                          max.x.level = 5,
                           show.total = FALSE,
                           paired = FALSE,
                           show.missing = TRUE,
                           verbose = FALSE) {
-    # data=acs; y="Dx"; x="height"; show.total=F; paired=F; show.missing=T; verbose=T
-    df <- data.frame(y = data[[y]], x = data[[x]])
+    # data=mtcars; y="am"; x="cyl"; show.total=F; paired=F; show.missing=T; verbose=T
+    if (grepl(" ", x)) {
+        f <- formula(paste(y, "~", x))
+        df <- model.frame(formula(f), data = data)
+        colnames(df) <- c("y", "x")
+    } else {
+        df <- data.frame(y = data[[y]], x = data[[x]])
+    }
 
     if (show.missing == TRUE) { # missing shown
         if (any(is.na(df))) {
@@ -116,7 +123,6 @@ createSummary <- function(x,
         } else {
             contingency.table <- table(df$x, df$y)
         }
-
 
         contingency.table.with.total <- addmargins(contingency.table, 2)
         total.number <- sum(contingency.table)
@@ -129,6 +135,10 @@ createSummary <- function(x,
 
     x.level <- nrow(contingency.table)
     variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
+
+    if (x.level <= max.x.level) {
+        variable.class <- 'categorical'
+    }
 
     if (variable.class == 'continuous') {
         calculated.summary.list <- tapply(data[[x]], data[[y]], calculateSummary)
@@ -163,7 +173,7 @@ createSummary <- function(x,
         }
 
         names(subgroup) <- rownames(contingency.table)
-        p.value <- perform.chisq.test(x = df$x, y = df$y)
+        p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired)
         result <- list(class = variable.class,
                        count = total.number,
                        subgroup = subgroup,

@@ -22,6 +22,7 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
     sample.size <- length(x)
     x.level <- length(unique(x))
     y.level <- length(unique(y))
+    tab <- table(y)
 
     if (y.level == 1) {
         p.value.vector <- NA
@@ -40,13 +41,23 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
         normality.shapiro <- shapiro.test(resid(normality.test))
 
         if (y.level == 2) {
-
             if (paired == TRUE) {
-                if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Wilcox's Test
-                    p.value.vector <- wilcox.test(x ~ y)$p.value
+
+                if (sum(diff(tab)) == 0) {
+                    if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Wilcox's Test
+                        p.value.vector <- wilcox.test(x ~ y)$p.value
+                    } else {
+                        p.value.vector <- t.test(x ~ y, paired = TRUE)$p.value
+                    }
                 } else {
-                    p.value.vector <- t.test(x ~ y, paired = TRUE)$p.value
+                    printLog("* Each y variable do not have same length, so perform normal t-test instead")
+                    if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Wilcox's Test
+                        p.value.vector <- wilcox.test(x ~ y)$p.value
+                    } else {
+                        p.value.vector <- t.test(x ~ y, paired = FALSE)$p.value
+                    }
                 }
+
             } else {
                 variance.test <- var.test(x ~ y) # test homogeneity
                 if (normality.shapiro$p.value < 0.05) { # Not normal, so perform Mann Whitney U test
@@ -65,13 +76,20 @@ perform.t.test <- function(x, y, paired = FALSE, verbose = FALSE) {
             } else {
                 p.value.vector <- anova(lm(x ~ factor(y)))$Pr[1]
             }
+
+
+
+
+
+
+
         }
 
     } else {
         if (verbose == TRUE) {
             printLog(paste0("* We have sample size of ", sample.size))
             printLog("** We don't need to think of the normality assumption by Central Limit Theorem (CTL)")
-            printLong("*** Parametric Method will be used for all t-test")
+            printLog("*** Parametric Method will be used for all t-test")
         }
 
         if (y.level == 2) {

@@ -106,7 +106,7 @@ createSummary <- function(x,
                           paired = FALSE,
                           show.missing = TRUE,
                           verbose = FALSE) {
-    # data=acs; y="Dx"; x="height"; show.total=F; paired=F; show.missing=T; verbose=F
+    # data=acs; y="Dx"; x="height"; show.total=F; paired=F; show.missing=T; verbose=T
     df <- data.frame(y = data[[y]], x = data[[x]])
 
     if (show.missing == TRUE) { # missing shown
@@ -137,7 +137,7 @@ createSummary <- function(x,
             names(calculated.summary.list)[length(calculated.summary.list)] <- 'Total'
         }
         df <- na.omit(df)
-        p.value <- perform.t.test(x = df$x, y = df$y, paired = paired)
+        p.value <- perform.t.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
         result <- list(class = variable.class,
                        count = total.number,
                        summary.list = calculated.summary.list,

@@ -11,9 +11,9 @@ perform.t.test(x, y, paired = FALSE, verbose = FALSE)
 
 \item{y}{A vector}
 
-\item{paired}{Boolean whether perform paired t-test or not}
+\item{paired}{Whether perform paired t-test or not}
 
-\item{verbose}{True as default}
+\item{verbose}{FALSE as default}
 }
 \value{
 A p-value vector according to the different type of data.

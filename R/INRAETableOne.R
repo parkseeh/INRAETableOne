@@ -192,8 +192,6 @@ makeTableOne <- function(obj, digits = 1) {
     for (i in 6:length(obj)) {
         variable.names <- c(variable.names, names(obj)[i])
 
-
-
         subgroup.names <- c(subgroup.names, "")
         variable.class <- c(variable.class, obj[[i]]$class)
         total.count <- c(total.count, obj[[i]]$count)
@@ -342,11 +340,8 @@ centerprint=function(x,...,width=10){
     x
 }
 
-#' Internal mytable functions
-#'
-#' Internal mytable functions
-#' These are not to be called by the user
 #' @param num an integer
+#' @export
 space=function(num){
     ret=c()
     if(num <1) return(ret)
@@ -354,10 +349,7 @@ space=function(num){
     ret
 }
 
-#' Internal mytable functions
-#'
-#' Internal mytable functions
-#' These are not to be called by the user
+
 #' @param x a character vector
 #' @param times an integer
 #' @export
@@ -368,15 +360,10 @@ reprint=function(x,times){
     ret
 }
 
-#' Title
-#'
+
 #' @param x
 #' @param ...
-#'
-#' @return
 #' @export
-#'
-#' @examples
 lineCount <- function(x, ...) {
     obj <- x
     if (obj$show.total == TRUE) {
@@ -407,18 +394,10 @@ lineCount <- function(x, ...) {
 }
 
 
-
-
-
-#' Title
-#'
 #' @param x
 #' @param ...
 #'
-#' @return
 #' @export
-#'
-#' @examples
 print.INRAETableOne <- function(x, ...) {
     obj <- x
     result <- lineCount(obj)

@@ -8,6 +8,7 @@ createSummary(
   x,
   y,
   data,
+  max.x.level = 5,
   show.total = FALSE,
   paired = FALSE,
   show.missing = TRUE,

@@ -4,7 +4,7 @@
 \alias{perform.chisq.test}
 \title{Perform Chisq Test or Fisher's Exat Test}
 \usage{
-perform.chisq.test(x, y, paired = FALSE)
+perform.chisq.test(x, y, paired = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{x}{A categorical vector}

@@ -34,12 +34,19 @@ INRAETableOne <- function(x, ...) {
 #' @export
 INRAETableOne.formula <- function(formula,
                                   data,
-                                  show.total = FALSE,
-                                  paired = FALSE,
+                                  max.x.level = 5,
                                   show.missing = TRUE,
+                                  paired = FALSE,
+                                  show.total = FALSE,
                                   verbose = FALSE) {
 
     # data <- read.csv('acs1.csv') ; formula <- Dx ~ .
+    if (inherits(formula, "formula")) {
+        stop("you need to specify the formula with a response variable on left hand side of '~'")
+    }
+    if (is.missing(data)) {
+        stop("data argument")
+    }
     model.terms <- terms(formula, data = data)
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
@@ -47,23 +54,27 @@ INRAETableOne.formula <- function(formula,
         y <- ''
     }
 
+    if (length(y) > 1) {
+        result <- INRAETableOneCbind()
+        return(result)
+    }
     y.table <- table(data[[y]])
     if (show.total == TRUE) {
         y.table <- addmargins(y.table)
         names(y.table)[length(y.table)] <- 'Total'
     }
 
-    result <- list(y = y,
-                   names = names(y.table),
-                   count = unname(y.table),
-                   length = length(y.table),
-                   show.total = show.total)
+    result.list <- list(y = y,
+                        names = names(y.table),
+                        count = unname(y.table),
+                        length = length(y.table))
     x.variables <- labels(model.terms)
 
     for (x.variable in x.variables) {
         summary.result <- createSummary(x = x.variable,
                                         y = y,
                                         data = data,
+                                        max.x.level = max.x.level,
                                         show.total = show.total,
                                         paired = paired,
                                         show.missing = show.missing,
@@ -73,12 +84,12 @@ INRAETableOne.formula <- function(formula,
             print('The summary result does not contain 4 element.')
             next
         }
-        result[[x.variable]] <- summary.result
+        result.list[[x.variable]] <- summary.result
     }
 
-    result1 <- makeTableOne(result, digits = 1)
-    class(result1) <- 'INRAETableOne'
-    return(result1)
+    result <- makeTableOne(result.list, digits = 1)
+    class(result) <- 'INRAETableOne'
+    return(result)
 
 }
 
@@ -103,9 +114,9 @@ createSummary <- function(x,
                           y,
                           data,
                           max.x.level = 5,
-                          show.total = FALSE,
-                          paired = FALSE,
                           show.missing = TRUE,
+                          paired = FALSE,
+                          show.total = FALSE,
                           verbose = FALSE) {
     # data=mtcars; y="am"; x="cyl"; show.total=F; paired=F; show.missing=T; verbose=T
     if (grepl(" ", x)) {
@@ -152,6 +163,7 @@ createSummary <- function(x,
                        count = total.number,
                        summary.list = calculated.summary.list,
                        p = p.value)
+
     } else if (variable.class == 'categorical') {
         subgroup <- list()
         for (i in 1:x.level) {
@@ -173,7 +185,7 @@ createSummary <- function(x,
         }
 
         names(subgroup) <- rownames(contingency.table)
-        p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired)
+        p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
         result <- list(class = variable.class,
                        count = total.number,
                        subgroup = subgroup,
@@ -199,7 +211,7 @@ makeTableOne <- function(obj, digits = 1) {
     initial.matrix <- matrix(NA, ncol = obj$length)
     colnames(initial.matrix) <- obj$names
 
-    for (i in 6:length(obj)) {
+    for (i in 5:length(obj)) {
         variable.names <- c(variable.names, names(obj)[i])
 
         subgroup.names <- c(subgroup.names, "")
@@ -311,8 +323,7 @@ makeTableOne <- function(obj, digits = 1) {
     colnames(res)[1] <- obj$y
 
     result <- list(res = res,
-                   count = obj$count,
-                   show.total = obj$show.total)
+                   count = obj$count)
     return(result)
 
 }
@@ -339,36 +350,31 @@ p2sig <- function(value){
 
 
 #' @export
-centerprint=function(x,...,width=10){
-
-    mwidth=max(nchar(x),width)
-    sp=(mwidth-nchar(x))/2
-    front=end=""
-    front=space(ceiling(sp))
-    end=space(floor(sp))
-    x=paste(front,x,end,sep="")
-    x
+centerprint <- function(x,...,width=10){
+    mwidth <- max(nchar(x),width)
+    sp <- (mwidth-nchar(x))/2
+    front <- end <- ""
+    front <- space(ceiling(sp))
+    end <- space(floor(sp))
+    x <- paste(front, x, end, sep="")
+    return(x)
 }
+
 
 #' @param num an integer
 #' @export
-space=function(num){
-    ret=c()
-    if(num <1) return(ret)
-    for(i in 1:num) ret=paste(" ",ret,sep="")
-    ret
+space <- function(num){
+    ret <- c()
+    if (num < 1) {
+        return(ret)
+    }
+    for (i in 1:num) {
+        ret <- paste(" ", ret, sep="")
+    }
+    return(ret)
 }
 
 
-#' @param x a character vector
-#' @param times an integer
-#' @export
-reprint=function(x,times){
-    ret=x
-    if(times<=1) return(x)
-    for(i in 1:times) ret=paste(ret,x,sep="")
-    ret
-}
 
 
 #' @param x
@@ -376,11 +382,12 @@ reprint=function(x,times){
 #' @export
 lineCount <- function(x, ...) {
     obj <- x
-    if (obj$show.total == TRUE) {
-        result.table <- obj$res
-    } else {
-        result.table <- obj$res[1:(length(obj$res)-3)]
-    }
+    #if (obj$show.total == TRUE) {
+    #    result.table <- obj$res
+    #} else {
+    #    result.table <- obj$res[1:(length(obj$res)-3)]
+    #}
+    result.table <- obj$res[1:(length(obj$res)-3)]
 
     count.total <- obj$count
     column.names <- colnames(result.table)
@@ -421,7 +428,7 @@ print.INRAETableOne <- function(x, ...) {
     tail.line <- paste(rep("-", line.length+1), collapse = "")
 
     cat("\n")
-    cat(paste0("Summary descriptives table by '", y, "'"))
+    cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))
     cat("\n\n")
     cat(head.line, "\n")
     for (i in 1:length(column.names)) {
@@ -442,6 +449,264 @@ print.INRAETableOne <- function(x, ...) {
     }
     cat(tail.line, '\n\n')
 }
+
+
+#' @param ...
+#' @param caption
+#' @param y
+#'
+#' @export
+cbind.INRAETableOne <- function(..., caption, y = NULL) {
+    cl <- match.call()
+    list.names <- function(...) {
+        deparse.level <- 1
+        l <- as.list(substitute(list(...)))[-1L]
+        nm <- names(l)
+        fixup <- if (is.null(nm)) {
+            seq_along(1)
+        } else {
+            nm == ""
+        }
+        dep <- sapply(l[fixup], function(x) switch(deparse.level + 1, "",
+                                                   if(is.symbol(x)) as.character(x) else "",
+                                                   deparse(x, nlines = 1)[1L]))
+        if (is.null(nm)) {
+            dep
+        } else {
+            nm[fixup] <- dep
+            nm
+        }
+    }
+
+    args <- list(...)
+    cl.miss <- sapply(args, function(arg.i) inherits(arg.i, 'missingTable'))
+
+    if (mean(cl.miss) > 0 & mean(cl.miss) < 1) {
+        stop("All or none of the tables must be of class 'missingTable")
+    }
+    if (missing(caption)) {
+        caption <- list.names(...)
+    }
+
+    cc <- unlist(lapply(args, function(x) !class(x)[1] %in% c("INRAETableOne")))
+    out <- args
+    if (is.null(caption) || all(caption == "")) {
+        captoin <- unlist(lapply(args, function(vv) ifelse(is.null(attr(vv, "yname")),
+                                                           "[No gouprs]", paste("By", attr(vv, "yname")))))
+    }
+    attr(out, "caption") <- caption
+    attr(out, "group") <- y
+    class(out) <- c("cbind.INRAETableOne", class(args[[1]]))
+    return(out)
+}
+
+
+
+cbind.INRAETableOne <- function(..., caption, y= NULL){
+    cl <- match.call()
+    list.names <- function(...) {
+        deparse.level <- 1
+        l <- as.list(substitute(list(...)))[-1L]
+        nm <- names(l)
+        fixup <- if (is.null(nm))
+            seq_along(l)
+        else nm == ""
+        dep <- sapply(l[fixup], function(x) switch(deparse.level +
+                                                       1, "", if (is.symbol(x)) as.character(x) else "",
+                                                   deparse(x, nlines = 1)[1L]))
+        if (is.null(nm))
+            dep
+        else {
+            nm[fixup] <- dep
+            nm
+        }
+    }
+    args <- list(...)
+    cl.miss <- sapply(args, function(args.i) inherits(args.i,
+                                                      "missingTable"))
+    if (mean(cl.miss) > 0 & mean(cl.miss) < 1)
+        stop("All or none of the tables must be of class 'missingTable'")
+    if (missing(caption))
+        caption <- list.names(...)
+    else {
+    }
+    cc <- unlist(lapply(args, function(x) !class(x)[1] %in% c("INRAETableOne")))
+
+    out <- args
+    if (is.null(caption) || all(caption == ""))
+        caption = unlist(lapply(args, function(vv) ifelse(is.null(attr(vv,
+                                                                       "yname")), "[No groups]", paste("By", attr(vv, "yname")))))
+    attr(out, "caption") <- caption
+    attr(out,"group")<-y
+    class(out) <- c("cbind.INRAETableOne", class(args[[1]]))
+    out
+}
+
+
+INRAETableOneCbind <- function(formula,
+                               data,
+                               max.x.level = 5,
+                               show.missing = TRUE,
+                               paired = FALSE,
+                               show.total = FALSE,
+                               verbose = FALSE) {
+
+    model.terms <- terms(formula, data = data)
+    y <- as.character(formula[[2]])
+    y <- unlist(strsplit(y,"+",fixed=TRUE))
+    if (length(y) > 1) {
+        y <- y[-1]
+    }
+    if (length(y) > 2) {
+        cat("Only two variables are permitted as grouping vairables\n")
+        return(invisible())
+    }
+    y1 <- y[1]
+    y2 <- y[2]
+    uniquey <- unique(data[[y1]])
+    ycount <- length(uniquey)
+    out <- list()
+
+    for (i in 1:ycount) {
+        sub.data <- data[data[[y1]] == uniquey[i],]
+
+        y.table <- table(sub.data[[y2]])
+        if (show.total == TRUE) {
+            y.table <- addmargins(y.table)
+            names(y.table)[length(y.table)] <- "Total"
+        }
+
+        result.list <- list(y = y2,
+                            names = names(y.table),
+                            count = unname(y.table),
+                            length = length(y.table))
+
+        x.variables <- labels(model.terms)
+
+        for (x.variable in x.variables) {
+            summary.result <- createSummary(x = x.variable,
+                                            y = y2,
+                                            data = sub.data,
+                                            max.x.level = max.x.level,
+                                            show.total = show.total,
+                                            paired = paired,
+                                            show.missing = show.missing,
+                                            verbose = verbose)
+            result.list[[x.variable]] <- summary.result
+        }
+        result <- makeTableOne(result.list, digits = 1)
+        class(result) <- "INRAETableOne"
+        out[[i]] <- result
+    }
+    if (ycount == 2) {
+        final.out <- cbind(out[1], out[2], caption = uniquey, y = y)
+    } else if (ycount == 3) {
+        final.out <- cbind(out[1], out[2], out[3], caption = uniquey, y = y)
+    } else if (ycount == 4) {
+        final.out <- cbind(out[1], out[2], out[3], out[4], caption = uniquey, y = y)
+    } else if (ycount == 5) {
+        final.out <- cbind(out[1], out[2], out[3], out[4], out[5], caption = uniquey, y = y)
+    } else if (ycount == 6) {
+        final.out <- cbind(out[1], out[2], out[3], out[4], out[5], out[6], caption = uniquey, y = y)
+    } else {
+        cat("Maximum y level is six")
+        return(invisible())
+    }
+    return(final.out)
+}
+
+
+print.cbind.INRAETableONE <- function(x,...) {
+    myobj=x
+    tcount=length(myobj) # number of tables
+    tnames=unlist(attr(myobj,"caption"))
+    group=attr(myobj,"group")
+    result=list()
+
+    for(i in 1:tcount) result[[i]]=obj2linecount(myobj[[i]])
+
+    linelength=0
+    for(i in 1:tcount) linelength=linelength+result[[i]]$linelength-result[[i]]$col.length[1]-1
+    linelength=result[[1]]$col.length[1]+linelength+tcount
+
+    cat("\n")
+    temp=paste("Descriptive Statistics stratified by '",group[1],"' and '",group[2],"'",sep="")
+    #for(i in 2:tcount) temp=paste(temp," and '",group[i],"'",sep="")
+    cat(centerprint(temp,width=linelength))
+    cat("\n")
+    hline=reprint("\u2014",linelength)  #head line
+    tline=reprint("\u2014",linelength)  # tail line
+    cat(hline,"\n")
+    cat(centerprint("",width=result[[1]]$col.length[1]+2))
+    for(i in 1:tcount){
+        if(class(tnames[i])=="factor") temp=levels(tnames)[tnames[i]]
+        else temp=tnames[i]
+        #browser()
+        cat(centerprint(temp,width=result[[i]]$linelength-result[[i]]$col.length[1]+1))
+    }
+    cat("\n")
+    cat(centerprint("",width=result[[1]]$col.length[1]+2))
+    for(i in 1:tcount) cat(reprint("\u2014",result[[i]]$linelength-result[[i]]$col.length[1]-2),"")
+    cat("\n")
+    cat(centerprint(result[[1]]$cn[1],width=result[[1]]$col.length[1]+1))
+    for(i in 1:tcount) {
+        for(j in 2:(length(result[[i]]$cn))) {
+            cat(centerprint(result[[i]]$cn[j],width=result[[i]]$col.length[j]+1))
+        }
+
+    }
+    cat("\n")
+    cat(centerprint("",width=result[[1]]$col.length[1]+1))
+    for(i in 1:tcount) {
+        for(j in 2:(length(result[[i]]$ncount))) {
+            cat(centerprint(result[[i]]$ncount[j],
+                            width=result[[i]]$col.length[j]+1))
+        }
+        cat("     ")
+    }
+    cat("\n")
+    cat(tline,"\n")
+
+    for(i in 1:dim(result[[1]]$out1)[1]){
+        for(k in 1:tcount){
+            if(k==1) {
+                for(j in 1:(length(result[[1]]$cn))){
+                    temp=as.numeric(result[[k]]$out1[i,"p"])
+                    if(!is.na(temp) &(temp<0.05)){
+                        cat(red(sapply(result[[k]]$out1[i,j],centerprint,
+                                       width=result[[k]]$col.length[j]+1)))
+                    } else {
+                        cat(sapply(result[[k]]$out1[i,j],centerprint,
+                                   width=result[[k]]$col.length[j]+1))
+                    }
+                }
+            }
+            else {
+                for(j in 2:(length(result[[1]]$cn))){
+                    temp=as.numeric(result[[k]]$out1[i,"p"])
+                    if(!is.na(temp) &(temp<0.05)){
+                        cat(red(sapply(result[[k]]$out1[i,j],centerprint,
+                                       width=result[[k]]$col.length[j]+1)))
+                    } else{
+                        cat(sapply(result[[k]]$out1[i,j],centerprint,
+                                   width=result[[k]]$col.length[j]+1))
+                    }
+                }
+            }
+        }
+        cat("\n")
+    }
+
+
+    cat(tline,"\n")
+
+
+}
+
+
+
+
+
 
 
 

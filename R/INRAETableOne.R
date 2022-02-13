@@ -25,7 +25,6 @@ INRAETableOne <- function(x, ...) {
 }
 
 
-
 #' INRAETableOne S3 Method for formula
 #'
 #' @param formula A formula format
@@ -40,24 +39,39 @@ INRAETableOne.formula <- function(formula,
                                   show.total = FALSE,
                                   verbose = FALSE) {
 
-    # data <- read.csv('acs1.csv') ; formula <- Dx ~ .
-    if (inherits(formula, "formula")) {
-        stop("you need to specify the formula with a response variable on left hand side of '~'")
+    if (!inherits(formula, "formula")) {
+        stop(paste("Please specift formula with y variable on the left hand side of '~'",
+             "and x variable(s) on the right hand side of '~'"))
     }
-    if (is.missing(data)) {
-        stop("data argument")
+    if (missing(data)) {
+        stop("Please indicate data argument")
     }
     model.terms <- terms(formula, data = data)
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
     } else {
-        y <- ''
+        y <- ""
+        result <- INRAETableOneNo(formula = formula,
+                                  data = data,
+                                  max.x.level = max.x.level,
+                                  show.missing = show.missing,
+                                  paired = paired,
+                                  show.total = show.total,
+                                  verbose = verbose)
+        return(result)
     }
 
     if (length(y) > 1) {
-        result <- INRAETableOneCbind()
+        result <- INRAETableOneMore(formula = formula,
+                                    data = data,
+                                    max.x.level = max.x.level,
+                                    show.missing = show.missing,
+                                    paired = paired,
+                                    show.total = show.total,
+                                    verbose = verbose)
         return(result)
     }
+
     y.table <- table(data[[y]])
     if (show.total == TRUE) {
         y.table <- addmargins(y.table)
@@ -68,6 +82,7 @@ INRAETableOne.formula <- function(formula,
                         names = names(y.table),
                         count = unname(y.table),
                         length = length(y.table))
+
     x.variables <- labels(model.terms)
 
     for (x.variable in x.variables) {
@@ -79,7 +94,7 @@ INRAETableOne.formula <- function(formula,
                                         paired = paired,
                                         show.missing = show.missing,
                                         verbose = verbose)
-        #print(summary.result)
+
         if (length(summary.result) != 4) {
             print('The summary result does not contain 4 element.')
             next
@@ -90,7 +105,6 @@ INRAETableOne.formula <- function(formula,
     result <- makeTableOne(result.list, digits = 1)
     class(result) <- 'INRAETableOne'
     return(result)
-
 }
 
 
@@ -106,6 +120,7 @@ INRAETableOne.formula <- function(formula,
 #' @param paired If \code{paired} is TRUE, then perfrom paired t-test. The default value is \code{FALSE},
 #' @param verbose Print the log message. The default value is \code{FALSE}
 #' @importFrom stats na.omit model.frame
+#' @importFrom Formula Formula
 #' @return A list containing the class of variable, total count of data, and
 #' p-value. In addition, the min, max, median, sd, mean will be produced only
 #' for continuous variable
@@ -119,77 +134,122 @@ createSummary <- function(x,
                           show.total = FALSE,
                           verbose = FALSE) {
     # data=mtcars; y="am"; x="cyl"; show.total=F; paired=F; show.missing=T; verbose=T
-    if (grepl(" ", x)) {
-        f <- formula(paste(y, "~", x))
-        df <- model.frame(formula(f), data = data)
-        colnames(df) <- c("y", "x")
-    } else {
-        df <- data.frame(y = data[[y]], x = data[[x]])
-    }
-
-    if (show.missing == TRUE) { # missing shown
-        if (any(is.na(df))) {
-            contingency.table <- table(df$x, df$y, useNA = 'ifany')
-            dimnames(contingency.table)[[1]][nrow(contingency.table)] <- 'Missing'
+    if (y == "") {
+        if (grepl(" ", x)) {
+            f <- formula(paste(y, "~", x))
+            df <- model.frame(formula(f), data = data)
+            colnames(df) <- c("x")
         } else {
-            contingency.table <- table(df$x, df$y)
+            df <- data.frame(x = data[[x]])
+        }
+        contingency.table <- table(df$x)
+        total.number <- sum(contingency.table)
+        variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
+        x.level <- nrow(table(df))
+
+        if (x.level <= max.x.level) {
+            variable.class <- 'categorical'
         }
 
-        contingency.table.with.total <- addmargins(contingency.table, 2)
-        total.number <- sum(contingency.table)
+        if (variable.class == 'continuous') {
+            calculated.summary.list <- lapply(df, calculateSummary)
+            result <- result <- list(class = variable.class,
+                                     count = total.number,
+                                     summary.list = calculated.summary.list,
+                                     p = NA)
 
-    } else {
-        contingency.table <- table(df$x, df$y)
-        contingency.table.with.total <- addmargins(contingency.table, 2)
-        total.number <- sum(contingency.table)
-    }
-
-    x.level <- nrow(contingency.table)
-    variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
-
-    if (x.level <= max.x.level) {
-        variable.class <- 'categorical'
-    }
-
-    if (variable.class == 'continuous') {
-        calculated.summary.list <- tapply(data[[x]], data[[y]], calculateSummary)
-        if (show.total == TRUE) {
-            calculated.summary.list[[length(calculated.summary.list) + 1]] <- calculateSummary(data[[x]])
-            names(calculated.summary.list)[length(calculated.summary.list)] <- 'Total'
-        }
-        df <- na.omit(df)
-        p.value <- perform.t.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
-        result <- list(class = variable.class,
-                       count = total.number,
-                       summary.list = calculated.summary.list,
-                       p = p.value)
-
-    } else if (variable.class == 'categorical') {
-        subgroup <- list()
-        for (i in 1:x.level) {
-            if (show.total == TRUE) {
-                subgroup.element.count <- contingency.table.with.total[i, ]
-                attr(subgroup.element.count, "names") <- NULL
-                ratio <- apply(contingency.table.with.total, 2, function(x) x * 100 / sum(x))
-                ratio.table <- list(count = subgroup.element.count,
-                                    ratio = ratio[i,])
-                subgroup[[i]] <- ratio.table
-            } else {
+        } else if (variable.class == 'categorical') {
+            contingency.table <- t(t(contingency.table))
+            subgroup <- list()
+            for (i in 1:x.level) {
                 subgroup.element.count <- contingency.table[i, ]
                 attr(subgroup.element.count, "names") <- NULL
                 ratio <- apply(contingency.table, 2, function(x) x * 100 / sum(x))
-                ratio.table <- list(count = subgroup.element.count,
-                                   ratio = ratio[i,])
+                ratio.table <- list(count = subgroup.element.count, ratio = ratio[i,])
                 subgroup[[i]] <- ratio.table
             }
+
+            names(subgroup) <- rownames(contingency.table)
+            result <- list(class = variable.class,
+                           count = total.number,
+                           subgroup = subgroup,
+                           p = NA)
         }
 
-        names(subgroup) <- rownames(contingency.table)
-        p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
-        result <- list(class = variable.class,
-                       count = total.number,
-                       subgroup = subgroup,
-                       p = p.value)
+    } else if (y != "") {
+        if (grepl(" ", x)) {
+            f <- formula(paste(y, "~", x))
+            df <- model.frame(formula(f), data = data)
+            colnames(df) <- c("y", "x")
+        } else {
+            df <- data.frame(y = data[[y]], x = data[[x]])
+        }
+
+        if (show.missing == TRUE) { # missing shown
+            if (any(is.na(df))) {
+                contingency.table <- table(df$x, df$y, useNA = 'ifany')
+                dimnames(contingency.table)[[1]][nrow(contingency.table)] <- 'Missing'
+            } else {
+                contingency.table <- table(df$x, df$y)
+            }
+
+            contingency.table.with.total <- addmargins(contingency.table, 2)
+            total.number <- sum(contingency.table)
+
+        } else {
+            contingency.table <- table(df$x, df$y)
+            contingency.table.with.total <- addmargins(contingency.table, 2)
+            total.number <- sum(contingency.table)
+        }
+
+        x.level <- nrow(contingency.table)
+        variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
+
+        if (x.level <= max.x.level) {
+            variable.class <- 'categorical'
+        }
+
+        if (variable.class == 'continuous') {
+            calculated.summary.list <- tapply(data[[x]], data[[y]], calculateSummary)
+            if (show.total == TRUE) {
+                calculated.summary.list[[length(calculated.summary.list) + 1]] <- calculateSummary(data[[x]])
+                names(calculated.summary.list)[length(calculated.summary.list)] <- 'Total'
+            }
+
+            df <- na.omit(df)
+            p.value <- perform.t.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
+            result <- list(class = variable.class,
+                           count = total.number,
+                           summary.list = calculated.summary.list,
+                           p = p.value)
+
+        } else if (variable.class == 'categorical') {
+            subgroup <- list()
+            for (i in 1:x.level) {
+                if (show.total == TRUE) {
+                    subgroup.element.count <- contingency.table.with.total[i, ]
+                    attr(subgroup.element.count, "names") <- NULL
+                    ratio <- apply(contingency.table.with.total, 2, function(x) x * 100 / sum(x))
+                    ratio.table <- list(count = subgroup.element.count,
+                                        ratio = ratio[i,])
+                    subgroup[[i]] <- ratio.table
+                } else {
+                    subgroup.element.count <- contingency.table[i, ]
+                    attr(subgroup.element.count, "names") <- NULL
+                    ratio <- apply(contingency.table, 2, function(x) x * 100 / sum(x))
+                    ratio.table <- list(count = subgroup.element.count,
+                                        ratio = ratio[i,])
+                    subgroup[[i]] <- ratio.table
+                }
+            }
+
+            names(subgroup) <- rownames(contingency.table)
+            p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
+            result <- list(class = variable.class,
+                           count = total.number,
+                           subgroup = subgroup,
+                           p = p.value)
+        }
     }
     return(result)
 }
@@ -382,17 +442,18 @@ space <- function(num){
 #' @export
 lineCount <- function(x, ...) {
     obj <- x
-    #if (obj$show.total == TRUE) {
+    # if (obj$show.total == TRUE) {
     #    result.table <- obj$res
-    #} else {
+    # } else {
     #    result.table <- obj$res[1:(length(obj$res)-3)]
-    #}
+    # }
     result.table <- obj$res[1:(length(obj$res)-3)]
 
     count.total <- obj$count
     column.names <- colnames(result.table)
     y <- column.names[1]
     column.names[1] <- ""
+
     n.count <- c("", paste0("(n=", count.total,")"))
     column.names.nchar <- nchar(column.names)
     column.nchar <- unname(sapply(result.table,function(x) max(nchar(x))))
@@ -407,7 +468,6 @@ lineCount <- function(x, ...) {
                    line.length = line.length)
 
     return(result)
-
 }
 
 
@@ -451,105 +511,34 @@ print.INRAETableOne <- function(x, ...) {
 }
 
 
-#' @param ...
+
 #' @param caption
 #' @param y
 #'
 #' @export
 cbind.INRAETableOne <- function(..., caption, y = NULL) {
-    cl <- match.call()
-    list.names <- function(...) {
-        deparse.level <- 1
-        l <- as.list(substitute(list(...)))[-1L]
-        nm <- names(l)
-        fixup <- if (is.null(nm)) {
-            seq_along(1)
-        } else {
-            nm == ""
-        }
-        dep <- sapply(l[fixup], function(x) switch(deparse.level + 1, "",
-                                                   if(is.symbol(x)) as.character(x) else "",
-                                                   deparse(x, nlines = 1)[1L]))
-        if (is.null(nm)) {
-            dep
-        } else {
-            nm[fixup] <- dep
-            nm
-        }
-    }
 
     args <- list(...)
-    cl.miss <- sapply(args, function(arg.i) inherits(arg.i, 'missingTable'))
-
-    if (mean(cl.miss) > 0 & mean(cl.miss) < 1) {
-        stop("All or none of the tables must be of class 'missingTable")
-    }
-    if (missing(caption)) {
-        caption <- list.names(...)
-    }
-
-    cc <- unlist(lapply(args, function(x) !class(x)[1] %in% c("INRAETableOne")))
     out <- args
     if (is.null(caption) || all(caption == "")) {
-        captoin <- unlist(lapply(args, function(vv) ifelse(is.null(attr(vv, "yname")),
-                                                           "[No gouprs]", paste("By", attr(vv, "yname")))))
+        caption <- unlist(lapply(args, function(vv) ifelse(is.null(attr(vv, "yname")),
+                                                           "[No groups]", paste("By", attr(vv, "yname")))))
     }
+
     attr(out, "caption") <- caption
     attr(out, "group") <- y
-    class(out) <- c("cbind.INRAETableOne", class(args[[1]]))
+    class(out) <- "cbind.INRAETableOne"
     return(out)
 }
 
 
-
-cbind.INRAETableOne <- function(..., caption, y= NULL){
-    cl <- match.call()
-    list.names <- function(...) {
-        deparse.level <- 1
-        l <- as.list(substitute(list(...)))[-1L]
-        nm <- names(l)
-        fixup <- if (is.null(nm))
-            seq_along(l)
-        else nm == ""
-        dep <- sapply(l[fixup], function(x) switch(deparse.level +
-                                                       1, "", if (is.symbol(x)) as.character(x) else "",
-                                                   deparse(x, nlines = 1)[1L]))
-        if (is.null(nm))
-            dep
-        else {
-            nm[fixup] <- dep
-            nm
-        }
-    }
-    args <- list(...)
-    cl.miss <- sapply(args, function(args.i) inherits(args.i,
-                                                      "missingTable"))
-    if (mean(cl.miss) > 0 & mean(cl.miss) < 1)
-        stop("All or none of the tables must be of class 'missingTable'")
-    if (missing(caption))
-        caption <- list.names(...)
-    else {
-    }
-    cc <- unlist(lapply(args, function(x) !class(x)[1] %in% c("INRAETableOne")))
-
-    out <- args
-    if (is.null(caption) || all(caption == ""))
-        caption = unlist(lapply(args, function(vv) ifelse(is.null(attr(vv,
-                                                                       "yname")), "[No groups]", paste("By", attr(vv, "yname")))))
-    attr(out, "caption") <- caption
-    attr(out,"group")<-y
-    class(out) <- c("cbind.INRAETableOne", class(args[[1]]))
-    out
-}
-
-
-INRAETableOneCbind <- function(formula,
-                               data,
-                               max.x.level = 5,
-                               show.missing = TRUE,
-                               paired = FALSE,
-                               show.total = FALSE,
-                               verbose = FALSE) {
+INRAETableOneMore <- function(formula,
+                              data,
+                              max.x.level = 5,
+                              show.missing = TRUE,
+                              paired = FALSE,
+                              show.total = FALSE,
+                              verbose = FALSE) {
 
     model.terms <- terms(formula, data = data)
     y <- as.character(formula[[2]])
@@ -598,16 +587,17 @@ INRAETableOneCbind <- function(formula,
         class(result) <- "INRAETableOne"
         out[[i]] <- result
     }
+
     if (ycount == 2) {
-        final.out <- cbind(out[1], out[2], caption = uniquey, y = y)
+        final.out <- cbind(out[[1]], out[[2]], caption = uniquey, y = y)
     } else if (ycount == 3) {
-        final.out <- cbind(out[1], out[2], out[3], caption = uniquey, y = y)
+        final.out <- cbind(out[[1]], out[[2]], out[[3]], caption = uniquey, y = y)
     } else if (ycount == 4) {
-        final.out <- cbind(out[1], out[2], out[3], out[4], caption = uniquey, y = y)
+        final.out <- cbind(out[[1]], out[[2]], out[[3]], out[[4]], caption = uniquey, y = y)
     } else if (ycount == 5) {
-        final.out <- cbind(out[1], out[2], out[3], out[4], out[5], caption = uniquey, y = y)
+        final.out <- cbind(out[[1]], out[[2]], out[[3]], out[[4]], out[[5]], caption = uniquey, y = y)
     } else if (ycount == 6) {
-        final.out <- cbind(out[1], out[2], out[3], out[4], out[5], out[6], caption = uniquey, y = y)
+        final.out <- cbind(out[[1]], out[[2]], out[[3]], out[[4]], out[[5]], out[[6]], caption = uniquey, y = y)
     } else {
         cat("Maximum y level is six")
         return(invisible())
@@ -616,99 +606,155 @@ INRAETableOneCbind <- function(formula,
 }
 
 
-print.cbind.INRAETableONE <- function(x,...) {
-    myobj=x
-    tcount=length(myobj) # number of tables
-    tnames=unlist(attr(myobj,"caption"))
-    group=attr(myobj,"group")
-    result=list()
+print.cbind.INRAETableOne <- function(x,...) {
+    obj <- x
+    tcount <- length(obj) # number of tables
+    tnames <- unlist(attr(obj,"caption"))
+    group <- attr(obj,"group")
+    result <- list()
 
-    for(i in 1:tcount) result[[i]]=obj2linecount(myobj[[i]])
+    for (i in 1:tcount) {
+        result[[i]] <- lineCount(obj[[i]])
+    }
 
-    linelength=0
-    for(i in 1:tcount) linelength=linelength+result[[i]]$linelength-result[[i]]$col.length[1]-1
-    linelength=result[[1]]$col.length[1]+linelength+tcount
+    line.length <- 0
+    for (i in 1:tcount) {
+        line.length <- line.length + result[[i]]$line.length - result[[i]]$column.length[1] - 1
+    }
 
+    line.length <- result[[1]]$column.length[1] + line.length + tcount
     cat("\n")
-    temp=paste("Descriptive Statistics stratified by '",group[1],"' and '",group[2],"'",sep="")
-    #for(i in 2:tcount) temp=paste(temp," and '",group[i],"'",sep="")
-    cat(centerprint(temp,width=linelength))
+
+    temp <- paste("Descriptive Statistics stratified by '",group[1],"' and '",group[2],"'",sep="")
+    cat(centerprint(temp, width=line.length))
     cat("\n")
-    hline=reprint("\u2014",linelength)  #head line
-    tline=reprint("\u2014",linelength)  # tail line
-    cat(hline,"\n")
-    cat(centerprint("",width=result[[1]]$col.length[1]+2))
-    for(i in 1:tcount){
-        if(class(tnames[i])=="factor") temp=levels(tnames)[tnames[i]]
-        else temp=tnames[i]
+
+    head.line <- paste(rep("_", line.length+1), collapse = "")
+    tail.line <- paste(rep("-", line.length+1), collapse = "")
+    cat(head.line, "\n")
+
+    cat(centerprint("", width = result[[1]]$column.length[1] + 2))
+    for (i in 1:tcount) {
+        if (class(tnames[i]) == "factor") {
+            temp <- levels(tnames)[tnames[i]]
+        } else {
+            temp <- tnames[i]
+        }
         #browser()
-        cat(centerprint(temp,width=result[[i]]$linelength-result[[i]]$col.length[1]+1))
+        cat(centerprint(temp, width = result[[i]]$line.length - result[[i]]$column.length[1] + 1))
     }
     cat("\n")
-    cat(centerprint("",width=result[[1]]$col.length[1]+2))
-    for(i in 1:tcount) cat(reprint("\u2014",result[[i]]$linelength-result[[i]]$col.length[1]-2),"")
+    cat(centerprint("",width=result[[1]]$column.length[1]+2))
+    for (i in 1:tcount) {
+        cat(paste(rep("-", result[[i]]$line.length - result[[i]]$column.length[1] - 1),collapse = ""), "")
+    }
     cat("\n")
-    cat(centerprint(result[[1]]$cn[1],width=result[[1]]$col.length[1]+1))
-    for(i in 1:tcount) {
-        for(j in 2:(length(result[[i]]$cn))) {
-            cat(centerprint(result[[i]]$cn[j],width=result[[i]]$col.length[j]+1))
+    cat(centerprint(result[[1]]$column.names[1], width = result[[1]]$column.length[1]+1))
+    for (i in 1:tcount) {
+        for (j in 2:(length(result[[i]]$column.names))) {
+            cat(centerprint(result[[i]]$column.names[j], width = result[[i]]$column.length[j]+1))
         }
 
     }
     cat("\n")
-    cat(centerprint("",width=result[[1]]$col.length[1]+1))
-    for(i in 1:tcount) {
-        for(j in 2:(length(result[[i]]$ncount))) {
-            cat(centerprint(result[[i]]$ncount[j],
-                            width=result[[i]]$col.length[j]+1))
+    cat(centerprint("", width = result[[1]]$column.length[1]+1))
+    for (i in 1:tcount) {
+        for (j in 2:(length(result[[i]]$n.counut))) {
+            cat(centerprint(result[[i]]$n.counut[j], width = result[[i]]$column.length[j]+1))
         }
-        cat("     ")
+        cat("      ")
     }
     cat("\n")
-    cat(tline,"\n")
+    cat(tail.line,"\n")
 
-    for(i in 1:dim(result[[1]]$out1)[1]){
-        for(k in 1:tcount){
-            if(k==1) {
-                for(j in 1:(length(result[[1]]$cn))){
-                    temp=as.numeric(result[[k]]$out1[i,"p"])
-                    if(!is.na(temp) &(temp<0.05)){
-                        cat(red(sapply(result[[k]]$out1[i,j],centerprint,
-                                       width=result[[k]]$col.length[j]+1)))
-                    } else {
-                        cat(sapply(result[[k]]$out1[i,j],centerprint,
-                                   width=result[[k]]$col.length[j]+1))
-                    }
+    for (i in 1:dim(result[[1]]$res)[1]){
+        for (k in 1:tcount){
+            if (k==1) {
+                for (j in 1:(length(result[[1]]$column.names))){
+                    cat(sapply(result[[k]]$res[i,j], centerprint, width = result[[k]]$column.length[j] +1))
                 }
-            }
-            else {
-                for(j in 2:(length(result[[1]]$cn))){
-                    temp=as.numeric(result[[k]]$out1[i,"p"])
-                    if(!is.na(temp) &(temp<0.05)){
-                        cat(red(sapply(result[[k]]$out1[i,j],centerprint,
-                                       width=result[[k]]$col.length[j]+1)))
-                    } else{
-                        cat(sapply(result[[k]]$out1[i,j],centerprint,
-                                   width=result[[k]]$col.length[j]+1))
-                    }
+            } else {
+                for (j in 2:(length(result[[1]]$column.names))){
+                    cat(sapply(result[[k]]$res[i,j], centerprint, width = result[[k]]$column.length[j] +1))
                 }
             }
         }
         cat("\n")
     }
-
-
-    cat(tline,"\n")
-
-
+    cat(tail.line,"\n")
 }
 
 
+INRAETableOneNo <- function(formula,
+                            data,
+                            max.x.level = 5,
+                            show.missing = TRUE,
+                            paired = FALSE,
+                            show.total = FALSE,
+                            verbose = FALSE) {
 
+    model.terms <- terms(formula, data = data)
+    x.variables <- labels(model.terms)
 
+    result.list <- list(y = y,
+                        names = "Overall",
+                        count = nrow(data),
+                        length = 1)
 
+    for (x.variable in x.variables) {
+        summary.result <- createSummary(x = x.variable,
+                                        y = y,
+                                        data = data,
+                                        max.x.level = max.x.level,
+                                        show.total = show.total,
+                                        paired = paired,
+                                        show.missing = show.missing,
+                                        verbose = verbose)
 
+        if (length(summary.result) != 4) {
+            print('The summary result does not contain 4 element.')
+            next
+        }
+        result.list[[x.variable]] <- summary.result
+    }
 
+    result <- makeTableOne(result.list, digits = 1)
+    class(result) <- 'INRAETableOneNo'
+    return(result)
+}
 
+print.INRAETableOneNo <- function(x, ...) {
+    obj <- x
+    result <- lineCount(obj)
+    y <- result$y
+    res <- result$res[1:(length(result$res)-1)]
+    column.names <- result$column.names[1:(length(result$column.names)-1)]
+    n.count <- result$n.counut[1:(length(result$n.counut)-1)]
+    column.length <- result$column.length[1:(length(result$column.length)-1)]
+    line.length <- result$line.length
+    head.line <- paste(rep("_", line.length+1), collapse = "")
+    tail.line <- paste(rep("-", line.length+1), collapse = "")
 
+    cat("\n")
+    cat(centerprint(paste0("Over all Summary descriptives table"), width = line.length))
+    cat("\n\n")
+    cat(head.line, "\n")
+    for (i in 1:length(column.names)) {
+        cat((centerprint(column.names[i], width = column.length[i]+1)))
+    }
+    cat('\n')
+    for (i in 1:length(n.count)) {
+        cat((centerprint(n.count[i], width = column.length[i]+1)))
+    }
+    cat("\n")
+    cat(tail.line, "\n")
+
+    for (i in 1:dim(res)[1]){
+        for(j in 1:length(column.names)){
+            cat(sapply(res[i,j], centerprint, width = column.length[j] + 1))
+        }
+        cat("\n")
+    }
+    cat(tail.line, '\n\n')
+}
 

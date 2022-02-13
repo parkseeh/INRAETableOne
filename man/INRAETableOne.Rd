@@ -10,9 +10,10 @@ INRAETableOne(x, ...)
 \method{INRAETableOne}{formula}(
   formula,
   data,
-  show.total = FALSE,
-  paired = FALSE,
+  max.x.level = 5,
   show.missing = TRUE,
+  paired = FALSE,
+  show.total = FALSE,
   verbose = FALSE
 )
 }

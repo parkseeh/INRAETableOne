@@ -46,44 +46,46 @@ INRAETableOne.formula <- function(formula,
     if (missing(data)) {
         stop("Please indicate data argument")
     }
+
+
     model.terms <- terms(formula, data = data)
+    x.variables <- labels(model.terms)
+
+
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
+
+        if (length(y) > 1) {
+            result <- INRAETableOneMore(formula = formula,
+                                        data = data,
+                                        max.x.level = max.x.level,
+                                        show.missing = show.missing,
+                                        paired = paired,
+                                        show.total = show.total,
+                                        verbose = verbose)
+            return(result)
+        } else {
+            y.table <- table(data[[y]])
+
+            if (show.total == TRUE) {
+                y.table <- addmargins(y.table)
+                names(y.table)[length(y.table)] <- 'Total'
+            }
+
+            result.list <- list(y = y,
+                                names = names(y.table),
+                                count = unname(y.table),
+                                length = length(y.table))
+        }
+
     } else {
         y <- ""
-        result <- INRAETableOneNo(formula = formula,
-                                  data = data,
-                                  max.x.level = max.x.level,
-                                  show.missing = show.missing,
-                                  paired = paired,
-                                  show.total = show.total,
-                                  verbose = verbose)
-        return(result)
+        result.list <- list(y = y,
+                            names = "Overall",
+                            count = nrow(data),
+                            length = 1)
     }
 
-    if (length(y) > 1) {
-        result <- INRAETableOneMore(formula = formula,
-                                    data = data,
-                                    max.x.level = max.x.level,
-                                    show.missing = show.missing,
-                                    paired = paired,
-                                    show.total = show.total,
-                                    verbose = verbose)
-        return(result)
-    }
-
-    y.table <- table(data[[y]])
-    if (show.total == TRUE) {
-        y.table <- addmargins(y.table)
-        names(y.table)[length(y.table)] <- 'Total'
-    }
-
-    result.list <- list(y = y,
-                        names = names(y.table),
-                        count = unname(y.table),
-                        length = length(y.table))
-
-    x.variables <- labels(model.terms)
 
     for (x.variable in x.variables) {
         summary.result <- createSummary(x = x.variable,
@@ -106,6 +108,7 @@ INRAETableOne.formula <- function(formula,
     class(result) <- 'INRAETableOne'
     return(result)
 }
+
 
 
 
@@ -135,7 +138,8 @@ createSummary <- function(x,
                           verbose = FALSE) {
     # data=mtcars; y="am"; x="cyl"; show.total=F; paired=F; show.missing=T; verbose=T
     if (y == "") {
-        if (grepl(" ", x)) {
+        #reg.exp <- c(" ", ":")
+        if (grepl(" ", x) || grepl(":",x)) {
             f <- formula(paste(y, "~", x))
             df <- model.frame(formula(f), data = data)
             colnames(df) <- c("x")
@@ -177,7 +181,7 @@ createSummary <- function(x,
         }
 
     } else if (y != "") {
-        if (grepl(" ", x)) {
+        if (grepl(" ", x) || grepl(":",x)) {
             f <- formula(paste(y, "~", x))
             df <- model.frame(formula(f), data = data)
             colnames(df) <- c("y", "x")
@@ -203,14 +207,14 @@ createSummary <- function(x,
         }
 
         x.level <- nrow(contingency.table)
-        variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
+        variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
         if (x.level <= max.x.level) {
             variable.class <- 'categorical'
         }
 
         if (variable.class == 'continuous') {
-            calculated.summary.list <- tapply(data[[x]], data[[y]], calculateSummary)
+            calculated.summary.list <- tapply(df$x, df$y, calculateSummary)
             if (show.total == TRUE) {
                 calculated.summary.list[[length(calculated.summary.list) + 1]] <- calculateSummary(data[[x]])
                 names(calculated.summary.list)[length(calculated.summary.list)] <- 'Total'
@@ -383,6 +387,7 @@ makeTableOne <- function(obj, digits = 1) {
     colnames(res)[1] <- obj$y
 
     result <- list(res = res,
+                   length = obj$length,
                    count = obj$count)
     return(result)
 
@@ -479,18 +484,33 @@ print.INRAETableOne <- function(x, ...) {
     obj <- x
     result <- lineCount(obj)
     y <- result$y
-    res <- result$res
-    column.names <- result$column.names
-    n.count <- result$n.counut
-    column.length <- result$column.length
     line.length <- result$line.length
     head.line <- paste(rep("_", line.length+1), collapse = "")
     tail.line <- paste(rep("-", line.length+1), collapse = "")
+    if (obj$length == 1) {
+        res <- result$res[1:(length(result$res)-1)]
+        column.names <- result$column.names[1:(length(result$column.names)-1)]
+        n.count <- result$n.counut[1:(length(result$n.counut)-1)]
+        column.length <- result$column.length[1:(length(result$column.length)-1)]
+        cat("\n")
+        cat(centerprint(paste0("Over all Summary descriptives table"), width = line.length))
+        cat("\n\n")
+        cat(head.line, "\n")
+    } else {
+        res <- result$res
+        column.names <- result$column.names
+        n.count <- result$n.counut
+        column.length <- result$column.length
+        line.length <- result$line.length
+        head.line <- paste(rep("_", line.length+1), collapse = "")
+        tail.line <- paste(rep("-", line.length+1), collapse = "")
 
-    cat("\n")
-    cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))
-    cat("\n\n")
-    cat(head.line, "\n")
+        cat("\n")
+        cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))
+        cat("\n\n")
+        cat(head.line, "\n")
+    }
+
     for (i in 1:length(column.names)) {
         cat((centerprint(column.names[i], width = column.length[i]+1)))
     }
@@ -694,6 +714,7 @@ INRAETableOneNo <- function(formula,
                             verbose = FALSE) {
 
     model.terms <- terms(formula, data = data)
+    y <- as.character(formula[[2]])
     x.variables <- labels(model.terms)
 
     result.list <- list(y = y,
@@ -736,7 +757,7 @@ print.INRAETableOneNo <- function(x, ...) {
     tail.line <- paste(rep("-", line.length+1), collapse = "")
 
     cat("\n")
-    cat(centerprint(paste0("Over all Summary descriptives table"), width = line.length))
+    cat(centerprint(paste0("Overall Summary descriptives table"), width = line.length))
     cat("\n\n")
     cat(head.line, "\n")
     for (i in 1:length(column.names)) {

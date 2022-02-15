@@ -2,7 +2,7 @@
 % Please edit documentation in R/INRAETableOne.R
 \name{p2sig}
 \alias{p2sig}
-\title{Print significant symbol}
+\title{Print the significant symbol}
 \usage{
 p2sig(value)
 }
@@ -10,5 +10,5 @@ p2sig(value)
 \item{value}{a numeric vector}
 }
 \description{
-Print significant symbol
+Print the significant symbol
 }

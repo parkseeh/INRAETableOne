@@ -3,7 +3,7 @@
 \name{INRAETableOne}
 \alias{INRAETableOne}
 \alias{INRAETableOne.formula}
-\title{Produces the descriptive summary table}
+\title{Generate the descriptive statistics table}
 \usage{
 INRAETableOne(x, ...)
 
@@ -14,26 +14,49 @@ INRAETableOne(x, ...)
   show.missing = TRUE,
   paired = FALSE,
   show.total = FALSE,
+  show.detail = FALSE,
   verbose = FALSE
 )
 }
 \arguments{
 \item{x}{A formula indicating the dependent variable(s) on the left hand side, and
-the independent variable(s) on the right hand side.}
+the independent variable(s) on the right hand side of '~'.}
 
-\item{...}{More arguments can be added.}
+\item{...}{further arguments to be passed to or from methods.}
 
-\item{formula}{A formula format}
+\item{max.x.level}{A maximum level of x level. If the level of x level is less than
+max.x.level, then it consider the column as categorical.  The default value is 5}
 
-\item{data}{A \code{data.frame}}
+\item{show.missing}{A boolean expression (T/F) whether to show the missing values on the
+table.}
+
+\item{paired}{A boolean expression (T/F) whether to perform a paired test in order to
+calculate p-value.  However, the numbers of sample size at before and after
+needs to be equal, otherwise, it would perform just two sample t-test.}
+
+\item{show.total}{A boolean expression (T/F) whether to show a total group of value.}
+
+\item{show.detail}{A boolean expression (T/F) whether to display the other extra
+summary statistics value such as min, max, and median.}
+
+\item{verbose}{A boolean expression (T/F) whether to print the log messages for
+every step.}
 }
 \description{
-It produces the baseline characteristics table on the dependent variables.
+It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
+}
+\details{
+The dependent and independent variable should be indicated as \code{formula} format.
+The formula may contain a dot (".") to refer to "all variables in \code{data}
+other than those that appear elsewhere in the formula".
 The maximum combination of dependent variables are two, and can be formulated with
-'+' sign such as variable1 + variable2 ~ ..
-Also it shows the p-value according to the type of independent variable whether
-perform \code{t.test}, \code{wilcox.test}, \code{kruskal.test}, \code{anova} if continuous,
- or \code{chisq.test}, \code{fisher.test} if categorical.
+'+' sign such as 'dependent1' + 'dependent2' ~ 'independent1' + 'independent2' + ....
+
+Also it shows the p-value according to the type of independent variable. The
+p-value is carefully calculated regarding the number of sample, normality, homogeneity,
+and independency.  The calculation is based on the \code{t.test}, \code{wilcox.test},
+\code{kruskal.test}, and \code{anova} for continuous variable, and \code{chisq.test}
+and \code{fisher.test} for categorical variable.
 }
 \section{Methods (by class)}{
 \itemize{

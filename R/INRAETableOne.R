@@ -1,17 +1,38 @@
-#' Produces the descriptive summary table
+#' Generate the descriptive statistics table
 #'
-#' It produces the baseline characteristics table on the dependent variables.
+#' It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
+#'
+#' @details
+#' The dependent and independent variable should be indicated as \code{formula} format.
+#' The formula may contain a dot (".") to refer to "all variables in \code{data}
+#' other than those that appear elsewhere in the formula".
 #' The maximum combination of dependent variables are two, and can be formulated with
-#' '+' sign such as variable1 + variable2 ~ ..
-#' Also it shows the p-value according to the type of independent variable whether
-#' perform \code{t.test}, \code{wilcox.test}, \code{kruskal.test}, \code{anova} if continuous,
-#'  or \code{chisq.test}, \code{fisher.test} if categorical.
+#' '+' sign such as 'dependent1' + 'dependent2' ~ 'independent1' + 'independent2' + ....
+#'
+#' Also it shows the p-value according to the type of independent variable. The
+#' p-value is carefully calculated regarding the number of sample, normality, homogeneity,
+#' and independency.  The calculation is based on the \code{t.test}, \code{wilcox.test},
+#' \code{kruskal.test}, and \code{anova} for continuous variable, and \code{chisq.test}
+#' and \code{fisher.test} for categorical variable.
 #'
 #' @param x A formula indicating the dependent variable(s) on the left hand side, and
-#' the independent variable(s) on the right hand side.
-#' @param ... More arguments can be added.
+#' the independent variable(s) on the right hand side of '~'.
+#' @param formula
+#' @param max.x.level A maximum level of x level. If the level of x level is less than
+#' max.x.level, then it consider the column as categorical.  The default value is 5
+#' @param show.missing A Boolean expression (T/F) whether to show the missing values on the
+#' table.
+#' @param paired A Boolean expression (T/F) whether to perform a paired test in order to
+#' calculate p-value.  However, the numbers of sample size at before and after
+#' needs to be equal, otherwise, it would perform just two sample t-test.
+#' @param show.total A Boolean expression (T/F) whether to show a total group of value.
+#' @param show.detail A Boolean expression (T/F) whether to display the other extra
+#' summary statistics value such as min, max, and median.
+#' @param verbose A Boolean expression (T/F) whether to print the log messages for
+#' every step.
+#' @param ... further arguments to be passed to or from methods.
 #'
-#' @export
+#' @return An object of class "INRAETableOne".
 #'
 #' @examples
 #' \dontrun{
@@ -19,17 +40,15 @@
 #' data(iris)
 #' INRAETableOne(Species ~ ., iris)
 #' }
-#'
+#' @export
 INRAETableOne <- function(x, ...) {
     UseMethod("INRAETableOne")
 }
 
 
 #' INRAETableOne S3 Method for formula
-#'
-#' @param formula A formula format
-#' @param data A \code{data.frame}
 #' @describeIn INRAETableOne The \code{formula} interface.
+#' @importFrom stats terms addmargins
 #' @export
 INRAETableOne.formula <- function(formula,
                                   data,
@@ -37,6 +56,7 @@ INRAETableOne.formula <- function(formula,
                                   show.missing = TRUE,
                                   paired = FALSE,
                                   show.total = FALSE,
+                                  show.detail = FALSE,
                                   verbose = FALSE) {
 
     if (!inherits(formula, "formula")) {
@@ -61,6 +81,7 @@ INRAETableOne.formula <- function(formula,
                                         max.x.level = max.x.level,
                                         show.missing = show.missing,
                                         paired = paired,
+                                        #
                                         show.total = show.total,
                                         verbose = verbose)
             return(result)
@@ -113,20 +134,24 @@ INRAETableOne.formula <- function(formula,
 
 
 
-#' Create the summary table
+#' Create the statistics summary table
 #'
-#' It produces the list containing the detailed summary table for
-#' the type of \code{y} (dependent variable) whether it's continuous or categorical
-#' @param x
-#' @param y
+#' It produces the list containing the detail of summary statistics table for
+#' the type of \code{y} (dependent variable) either continuous or categorical
+#'
+#' @param x a independent variable
+#' @param y a dependent variable
 #' @param data A \code{data.frame}
-#' @param paired If \code{paired} is TRUE, then perfrom paired t-test. The default value is \code{FALSE},
+#' @param paired A Boolean expression (T/F) whether to perform the paired t-test.
+#'  The default value is \code{FALSE}
 #' @param verbose Print the log message. The default value is \code{FALSE}
-#' @importFrom stats na.omit model.frame
-#' @importFrom Formula Formula
+#'
+#' @importFrom stats na.omit model.frame formula addmargins
+#'
 #' @return A list containing the class of variable, total count of data, and
 #' p-value. In addition, the min, max, median, sd, mean will be produced only
 #' for continuous variable
+#'
 #' @export
 createSummary <- function(x,
                           y,
@@ -259,6 +284,12 @@ createSummary <- function(x,
 }
 
 
+#' Generate a \code{data.frame}
+#'
+#' @param obj An object returned by \code{\link{createSummary}}.
+#' @param digits A number indicating the decimals digits
+#'
+#' @export
 makeTableOne <- function(obj, digits = 1) {
     # obj <- result ; digits = 1
     plusminus <- "\u00b1"
@@ -394,8 +425,9 @@ makeTableOne <- function(obj, digits = 1) {
 }
 
 
-#' Print significant symbol
+#' Print the significant symbol
 #' @param value a numeric vector
+#' @export
 p2sig <- function(value){
     if (is.na(value)) {
         sig <= "   "
@@ -413,7 +445,9 @@ p2sig <- function(value){
     return(sig)
 }
 
-
+#' Prints the string in the center within the width value
+#' @param x A string
+#' @param width A length of string
 #' @export
 centerprint <- function(x,...,width=10){
     mwidth <- max(nchar(x),width)
@@ -442,7 +476,7 @@ space <- function(num){
 
 
 
-#' @param x
+#' @param x An object returned by \code{\link{makeTableOne}}.
 #' @param ...
 #' @export
 lineCount <- function(x, ...) {
@@ -476,8 +510,8 @@ lineCount <- function(x, ...) {
 }
 
 
-#' @param x
-#' @param ...
+#' @param x An object of class "INRAETableOne"
+#' @param ... further arguments to be passed to or from methods.
 #'
 #' @export
 print.INRAETableOne <- function(x, ...) {
@@ -532,8 +566,12 @@ print.INRAETableOne <- function(x, ...) {
 
 
 
-#' @param caption
-#' @param y
+
+
+
+#' @param ... An object of class "INRAETableOne". It can be multiples of INRAETableOne
+#' @param caption A unique value of grouping variable
+#' @param y A name of grouping variable
 #'
 #' @export
 cbind.INRAETableOne <- function(..., caption, y = NULL) {
@@ -552,12 +590,42 @@ cbind.INRAETableOne <- function(..., caption, y = NULL) {
 }
 
 
+#' Generate the descriptive statistics table
+#'
+#' It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
+#'
+#' @details
+#' The dependent and independent variable should be indicated as \code{formula} format.
+#' The formula may contain a dot (".") to refer to "all variables in \code{data}
+#' other than those that appear elsewhere in the formula".
+#' The maximum combination of dependent variables are two, and can be formulated with
+#' '+' sign such as 'dependent1' + 'dependent2' ~ 'independent1' + 'independent2' + ....
+#'
+#' @param x A formula indicating the dependent variable(s) on the left hand side, and
+#' the independent variable(s) on the right hand side of '~'.
+#' @param formula
+#' @param max.x.level A maximum level of x level. If the level of x level is less than
+#' max.x.level, then it consider the column as categorical.  The default value is 5
+#' @param show.missing A Boolean expression (T/F) whether to show the missing values on the
+#' table.
+#' @param paired A Boolean expression (T/F) whether to perform a paired test in order to
+#' calculate p-value.  However, the numbers of sample size at before and after
+#' needs to be equal, otherwise, it would perform just two sample t-test.
+#' @param show.total A Boolean expression (T/F) whether to show a total group of value.
+#' @param show.detail A Boolean expression (T/F) whether to display the other extra
+#' summary statistics value such as min, max, and median.
+#' @param verbose A Boolean expression (T/F) whether to print the log messages for
+#' every step.
+#' @param ... further arguments to be passed to or from methods.
+#'
+#' @return An object of class "cbind.INRAETableOne".
 INRAETableOneMore <- function(formula,
                               data,
                               max.x.level = 5,
                               show.missing = TRUE,
                               paired = FALSE,
                               show.total = FALSE,
+                              show.detail = FALSE,
                               verbose = FALSE) {
 
     model.terms <- terms(formula, data = data)
@@ -626,6 +694,13 @@ INRAETableOneMore <- function(formula,
 }
 
 
+#' Print function for class of cbind.INRAETableOne
+#'
+#' @param x An object of class "cbind.INRAETableOne".  It is returned from
+#' \code{\link{cbind.INRAETableOne}}
+#' @param ... further arguments to be passed to or from methods.
+#'
+#' @export
 print.cbind.INRAETableOne <- function(x,...) {
     obj <- x
     tcount <- length(obj) # number of tables
@@ -704,78 +779,78 @@ print.cbind.INRAETableOne <- function(x,...) {
     cat(tail.line,"\n")
 }
 
-
-INRAETableOneNo <- function(formula,
-                            data,
-                            max.x.level = 5,
-                            show.missing = TRUE,
-                            paired = FALSE,
-                            show.total = FALSE,
-                            verbose = FALSE) {
-
-    model.terms <- terms(formula, data = data)
-    y <- as.character(formula[[2]])
-    x.variables <- labels(model.terms)
-
-    result.list <- list(y = y,
-                        names = "Overall",
-                        count = nrow(data),
-                        length = 1)
-
-    for (x.variable in x.variables) {
-        summary.result <- createSummary(x = x.variable,
-                                        y = y,
-                                        data = data,
-                                        max.x.level = max.x.level,
-                                        show.total = show.total,
-                                        paired = paired,
-                                        show.missing = show.missing,
-                                        verbose = verbose)
-
-        if (length(summary.result) != 4) {
-            print('The summary result does not contain 4 element.')
-            next
-        }
-        result.list[[x.variable]] <- summary.result
-    }
-
-    result <- makeTableOne(result.list, digits = 1)
-    class(result) <- 'INRAETableOneNo'
-    return(result)
-}
-
-print.INRAETableOneNo <- function(x, ...) {
-    obj <- x
-    result <- lineCount(obj)
-    y <- result$y
-    res <- result$res[1:(length(result$res)-1)]
-    column.names <- result$column.names[1:(length(result$column.names)-1)]
-    n.count <- result$n.counut[1:(length(result$n.counut)-1)]
-    column.length <- result$column.length[1:(length(result$column.length)-1)]
-    line.length <- result$line.length
-    head.line <- paste(rep("_", line.length+1), collapse = "")
-    tail.line <- paste(rep("-", line.length+1), collapse = "")
-
-    cat("\n")
-    cat(centerprint(paste0("Overall Summary descriptives table"), width = line.length))
-    cat("\n\n")
-    cat(head.line, "\n")
-    for (i in 1:length(column.names)) {
-        cat((centerprint(column.names[i], width = column.length[i]+1)))
-    }
-    cat('\n')
-    for (i in 1:length(n.count)) {
-        cat((centerprint(n.count[i], width = column.length[i]+1)))
-    }
-    cat("\n")
-    cat(tail.line, "\n")
-
-    for (i in 1:dim(res)[1]){
-        for(j in 1:length(column.names)){
-            cat(sapply(res[i,j], centerprint, width = column.length[j] + 1))
-        }
-        cat("\n")
-    }
-    cat(tail.line, '\n\n')
-}
+#
+# INRAETableOneNo <- function(formula,
+#                             data,
+#                             max.x.level = 5,
+#                             show.missing = TRUE,
+#                             paired = FALSE,
+#                             show.total = FALSE,
+#                             verbose = FALSE) {
+#
+#     model.terms <- terms(formula, data = data)
+#     y <- as.character(formula[[2]])
+#     x.variables <- labels(model.terms)
+#
+#     result.list <- list(y = y,
+#                         names = "Overall",
+#                         count = nrow(data),
+#                         length = 1)
+#
+#     for (x.variable in x.variables) {
+#         summary.result <- createSummary(x = x.variable,
+#                                         y = y,
+#                                         data = data,
+#                                         max.x.level = max.x.level,
+#                                         show.total = show.total,
+#                                         paired = paired,
+#                                         show.missing = show.missing,
+#                                         verbose = verbose)
+#
+#         if (length(summary.result) != 4) {
+#             print('The summary result does not contain 4 element.')
+#             next
+#         }
+#         result.list[[x.variable]] <- summary.result
+#     }
+#
+#     result <- makeTableOne(result.list, digits = 1)
+#     class(result) <- 'INRAETableOneNo'
+#     return(result)
+# }
+#
+# print.INRAETableOneNo <- function(x, ...) {
+#     obj <- x
+#     result <- lineCount(obj)
+#     y <- result$y
+#     res <- result$res[1:(length(result$res)-1)]
+#     column.names <- result$column.names[1:(length(result$column.names)-1)]
+#     n.count <- result$n.counut[1:(length(result$n.counut)-1)]
+#     column.length <- result$column.length[1:(length(result$column.length)-1)]
+#     line.length <- result$line.length
+#     head.line <- paste(rep("_", line.length+1), collapse = "")
+#     tail.line <- paste(rep("-", line.length+1), collapse = "")
+#
+#     cat("\n")
+#     cat(centerprint(paste0("Overall Summary descriptives table"), width = line.length))
+#     cat("\n\n")
+#     cat(head.line, "\n")
+#     for (i in 1:length(column.names)) {
+#         cat((centerprint(column.names[i], width = column.length[i]+1)))
+#     }
+#     cat('\n')
+#     for (i in 1:length(n.count)) {
+#         cat((centerprint(n.count[i], width = column.length[i]+1)))
+#     }
+#     cat("\n")
+#     cat(tail.line, "\n")
+#
+#     for (i in 1:dim(res)[1]){
+#         for(j in 1:length(column.names)){
+#             cat(sapply(res[i,j], centerprint, width = column.length[j] + 1))
+#         }
+#         cat("\n")
+#     }
+#     cat(tail.line, '\n\n')
+# }
 

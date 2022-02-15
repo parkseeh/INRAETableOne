@@ -27,6 +27,7 @@
 #' @param ... further arguments to be passed to or from methods.
 #'
 #' @return An object of class "cbind.INRAETableOne".
+#' @export
 INRAETableOneMore <- function(formula,
                               data,
                               max.x.level = 5,

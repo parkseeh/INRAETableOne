@@ -6,7 +6,7 @@ An R package for generating tables of descriptive statistics.
 
 To install directly from Github:
 
-```r
+``` r
 require(devtools)
 devtools::install_github("parkseeh/INRAETableOne")
 ```
@@ -18,7 +18,7 @@ A short introduction to the package with examples is shown below
 For this example, you will be using `pal` dataset, which you can directly load
 by using `data()`
 
-```r
+``` r
 library(INRAETableOne)
 data(pal)
 
@@ -28,7 +28,7 @@ INRAETableOne(Groupe_ttt ~ ., pal)
 There are few options you just choose.
 The `show.detail = T` will show more summary for the `continuous` variables such as min, max, and median.
 
-```r
+``` r
 INRAETableOne(Groupe_ttt ~ ., pal, show.detail = T)
 ```
 
@@ -41,7 +41,7 @@ INRAETableOne(Groupe_ttt ~ ., pal, max.x.level = 10)
 
 Also if you want to know whether there exists the missing variable, just put 
 `show.missing = T` as other argument.
-```r
+``` r
 INRAETableOne(Groupe_ttt ~ ., pal, max.x.level = 10, show.missing = T)
 ```
 

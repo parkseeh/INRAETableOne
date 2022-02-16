@@ -2,7 +2,7 @@
 #'
 #' It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
 #'
-#' @details
+#' @description
 #' The dependent and independent variable should be indicated as \code{formula} format.
 #' The formula may contain a dot (".") to refer to "all variables in \code{data}
 #' other than those that appear elsewhere in the formula".
@@ -53,11 +53,12 @@ INRAETableOne <- function(x, ...) {
 INRAETableOne.formula <- function(formula,
                                   data,
                                   max.x.level = 5,
-                                  show.missing = TRUE,
+                                  show.missing = FALSE,
                                   paired = FALSE,
                                   show.total = FALSE,
                                   show.detail = FALSE,
-                                  verbose = FALSE) {
+                                  verbose = FALSE,
+                                  origData) {
 
     if (!inherits(formula, "formula")) {
         stop(paste("Please specift formula with y variable on the left hand side of '~'",
@@ -83,7 +84,8 @@ INRAETableOne.formula <- function(formula,
                                         paired = paired,
                                         show.total = show.total,
                                         show.detail = show.detail,
-                                        verbose = verbose)
+                                        verbose = verbose,
+                                        origData = data)
             return(result)
         } else {
             y.table <- table(data[[y]])
@@ -118,7 +120,8 @@ INRAETableOne.formula <- function(formula,
                                         show.missing = show.missing,
                                         paired = paired,
                                         show.total = show.total,
-                                        verbose = verbose)
+                                        verbose = verbose,
+                                        origData = data)
 
         if (length(summary.result) != 4) {
             print('The summary result does not contain 4 element.')

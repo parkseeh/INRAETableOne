@@ -24,8 +24,6 @@ print.INRAETableOne <- function(x, ...) {
         n.count <- result$n.counut
         column.length <- result$column.length
         line.length <- result$line.length
-        head.line <- paste(rep("_", line.length+1), collapse = "")
-        tail.line <- paste(rep("-", line.length+1), collapse = "")
 
         cat("\n")
         cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))

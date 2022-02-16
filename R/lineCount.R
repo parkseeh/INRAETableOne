@@ -27,8 +27,6 @@ space <- function(num){
 }
 
 
-
-
 #' @param x An object returned by \code{\link{makeTableOne}}.
 #' @param ...
 #' @export

@@ -31,12 +31,16 @@
 INRAETableOneMore <- function(formula,
                               data,
                               max.x.level = 5,
-                              show.missing = TRUE,
+                              show.missing = FALSE,
                               paired = FALSE,
                               show.total = FALSE,
                               show.detail = FALSE,
-                              verbose = FALSE) {
+                              verbose = FALSE,
+                              origData = NULL) {
 
+    if (is.null(origData)) {
+        origData <- data
+    }
     model.terms <- terms(formula, data = data)
     y <- as.character(formula[[2]])
     y <- unlist(strsplit(y,"+",fixed=TRUE))
@@ -71,7 +75,8 @@ INRAETableOneMore <- function(formula,
         x.variables <- labels(model.terms)
 
         for (x.variable in x.variables) {
-            if ((length(unique(data[[x.variable]]))) <= max.x.level & !is.factor(sub.data[[x.variable]])) {
+
+            if ((length(unique(origData[[x.variable]]))) <= max.x.level & !is.factor(sub.data[[x.variable]])) {
                 data[[x.variable]] <- factor(data[[x.variable]])
                 sub.data <- data[data[[y1]] == uniquey[i],]
             }
@@ -83,7 +88,8 @@ INRAETableOneMore <- function(formula,
                                             show.total = show.total,
                                             paired = paired,
                                             show.missing = show.missing,
-                                            verbose = verbose)
+                                            verbose = verbose,
+                                            origData = data)
 
             result.list[[x.variable]] <- summary.result
         }

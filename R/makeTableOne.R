@@ -137,6 +137,7 @@ makeTableOne <- function(obj, digits = 1) {
                             paste(variable.names, " - ", subgroup.names, sep = ""))
 
     combined.name <- formatC(combined.name,"%s",flag="-")
+    options(stringsAsFactors = FALSE)
     res <- data.frame(name=combined.name)
     for (j in 1:obj$length) {
         res <- data.frame(res, initial.matrix[, j])

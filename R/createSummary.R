@@ -24,7 +24,8 @@ createSummary <- function(x,
                           show.missing = TRUE,
                           paired = FALSE,
                           show.total = FALSE,
-                          verbose = FALSE) {
+                          verbose = FALSE,
+                          origData) {
     # show.total=F; paired=F; show.missing=T; show.detail = F; verbose=F
     if (y == "") {
         #reg.exp <- c(" ", ":")
@@ -38,7 +39,13 @@ createSummary <- function(x,
         contingency.table <- table(df$x)
         total.number <- sum(contingency.table)
         variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
-        x.level <- nrow(table(df))
+
+        if (show.missing == TRUE) {
+            x.level <- length(unique(origData[[x]]))
+        } else {
+            x.level <- length(setdiff(unique(origData[[x]]), NA))
+        }
+
 
         if (x.level <= max.x.level) {
             variable.class <- 'categorical'
@@ -78,12 +85,16 @@ createSummary <- function(x,
             df <- data.frame(y = data[[y]], x = data[[x]])
         }
 
+        exist.missing <- FALSE
+
         if (show.missing == TRUE) { # missing shown
             if (any(is.na(df))) {
                 contingency.table <- table(df$x, df$y, useNA = 'ifany')
                 dimnames(contingency.table)[[1]][nrow(contingency.table)] <- 'Missing'
+                exist.missing <- TRUE
             } else {
                 contingency.table <- table(df$x, df$y)
+                exist.missing <- FALSE
             }
 
             contingency.table.with.total <- addmargins(contingency.table, 2)
@@ -95,7 +106,14 @@ createSummary <- function(x,
             total.number <- sum(contingency.table)
         }
 
-        x.level <- nrow(contingency.table)
+        if (show.missing == TRUE && exist.missing == TRUE) {
+            x.level <- length(unique(origData[[x]]))
+        } else if (show.missing == TRUE && exist.missing == FALSE){
+            x.level <- length(setdiff(unique(origData[[x]]), NA))
+        } else{
+            x.level <- length(setdiff(unique(origData[[x]]), NA))
+        }
+
         variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
         if (x.level <= max.x.level) {
@@ -140,8 +158,16 @@ createSummary <- function(x,
                     subgroup[[i]] <- ratio.table
                 }
             }
+            if (show.missing == T && exist.missing == F) {
+                mat <- matrix(0, ncol = ncol(ratio))
+                colnames(mat) <- names(ratio[1,])
+                subgroup[[x.level + 1]] <- list(count = rep(0, length(subgroup.element.count)),
+                                                ratio = mat)
+                names(subgroup) <- c(rownames(contingency.table), "Missing")
+            } else {
+                names(subgroup) <- rownames(contingency.table)
+            }
 
-            names(subgroup) <- rownames(contingency.table)
             p.value <- perform.chisq.test(x = df$x, y = df$y, paired = paired, verbose = verbose)
             result <- list(class = variable.class,
                            count = total.number,
@@ -151,5 +177,7 @@ createSummary <- function(x,
     }
     return(result)
 }
+
+
 
 

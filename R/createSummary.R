@@ -114,29 +114,34 @@ createSummary <- function(x,
             total.number <- sum(contingency.table)
         }
 
-        if (show.missing == TRUE && exist.missing == TRUE) {
-            x.level <- length(unique(origData[[x]]))  # including NA -> 6
-        } else if (show.missing == TRUE && exist.missing == FALSE){  # -> 5
-            x.level <- length(setdiff(unique(origData[[x]]), NA))
-        } else{
-            x.level <- length(setdiff(unique(origData[[x]]), NA))
-        }
-
         variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
         if (show.missing == TRUE && exist.missing == TRUE) {
-            if (x.level  - 1<= max.x.level) {
+            x.level <- length(unique(origData[[x]]))  # including NA -> 6
+            if (x.level - 1 <= max.x.level) {
                 variable.class <- 'categorical'
             }
-        } else if (show.missing == TRUE && exist.missing == FALSE) {
-            if (x.level <= max.x.level) {
-                variable.class <- 'categorical'
-            }
-        } else {
+        } else{
+            x.level <- length(setdiff(unique(origData[[x]]), NA))
             if (x.level <= max.x.level) {
                 variable.class <- 'categorical'
             }
         }
+
+
+        # if (show.missing == TRUE && exist.missing == TRUE) {
+        #     if (x.level  - 1<= max.x.level) {
+        #         variable.class <- 'categorical'
+        #     }
+        # } else if (show.missing == TRUE && exist.missing == FALSE) {
+        #     if (x.level <= max.x.level) {
+        #         variable.class <- 'categorical'
+        #     }
+        # } else {
+        #     if (x.level <= max.x.level) {
+        #         variable.class <- 'categorical'
+        #     }
+        # }
 
         if (variable.class == 'continuous') {
             calculated.summary.list <- tapply(df$x, df$y, calculateSummary)

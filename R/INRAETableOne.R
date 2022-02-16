@@ -139,15 +139,3 @@ INRAETableOne.formula <- function(formula,
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-

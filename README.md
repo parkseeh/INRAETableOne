@@ -26,7 +26,8 @@ INRAETableOne(Groupe_ttt ~ ., pal)
 ```
 
 There are few options you just choose.
-The `show.detail = T` will show more summary for the `continuous` variables such as min, max, and median, 
+The `show.detail = T` will show more summary for the `continuous` variables such as min, max, and median.
+
 ```
 INRAETableOne(Groupe_ttt ~ ., pal, show.detail = T)
 ```

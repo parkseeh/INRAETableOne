@@ -8,11 +8,12 @@ INRAETableOneMore(
   formula,
   data,
   max.x.level = 5,
-  show.missing = TRUE,
+  show.missing = FALSE,
   paired = FALSE,
   show.total = FALSE,
   show.detail = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  origData = NULL
 )
 }
 \arguments{

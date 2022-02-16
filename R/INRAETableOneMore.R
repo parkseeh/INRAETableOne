@@ -75,8 +75,11 @@ INRAETableOneMore <- function(formula,
         x.variables <- labels(model.terms)
 
         for (x.variable in x.variables) {
+            if (grepl("`", x.variable)) {
+                x.variable <- gsub("`", "", x.variable)
+            }
 
-            if ((length(unique(origData[[x.variable]]))) <= max.x.level & !is.factor(sub.data[[x.variable]])) {
+            if ((length(setdiff(unique(origData[[x.variable]]), NA))) <= max.x.level & !is.factor(sub.data[[x.variable]])) {
                 data[[x.variable]] <- factor(data[[x.variable]])
                 sub.data <- data[data[[y1]] == uniquey[i],]
             }

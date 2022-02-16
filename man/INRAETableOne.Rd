@@ -11,11 +11,12 @@ INRAETableOne(x, ...)
   formula,
   data,
   max.x.level = 5,
-  show.missing = TRUE,
+  show.missing = FALSE,
   paired = FALSE,
   show.total = FALSE,
   show.detail = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  origData
 )
 }
 \arguments{
@@ -46,9 +47,6 @@ every step.}
 An object of class "INRAETableOne".
 }
 \description{
-It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
-}
-\details{
 The dependent and independent variable should be indicated as \code{formula} format.
 The formula may contain a dot (".") to refer to "all variables in \code{data}
 other than those that appear elsewhere in the formula".
@@ -60,6 +58,9 @@ p-value is carefully calculated regarding the number of sample, normality, homog
 and independency.  The calculation is based on the \code{t.test}, \code{wilcox.test},
 \code{kruskal.test}, and \code{anova} for continuous variable, and \code{chisq.test}
 and \code{fisher.test} for categorical variable.
+}
+\details{
+It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
 }
 \section{Methods (by class)}{
 \itemize{

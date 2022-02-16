@@ -12,7 +12,8 @@ createSummary(
   show.missing = TRUE,
   paired = FALSE,
   show.total = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  origData
 )
 }
 \arguments{

@@ -113,6 +113,9 @@ INRAETableOne.formula <- function(formula,
 
 
     for (x.variable in x.variables) {
+        if (grepl("`", x.variable)) {
+            x.variable <- gsub("`", "", x.variable)
+        }
         summary.result <- createSummary(x = x.variable,
                                         y = y,
                                         data = data,

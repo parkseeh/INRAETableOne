@@ -29,12 +29,15 @@ createSummary <- function(x,
     # show.total=F; paired=F; show.missing=T; show.detail = F; verbose=F
     if (y == "") {
         #reg.exp <- c(" ", ":")
-        if (grepl(" ", x) || grepl(":",x)) {
-            f <- formula(paste(y, "~", x))
-            df <- model.frame(formula(f), data = data)
-            colnames(df) <- c("x")
-        } else {
-            df <- data.frame(x = data[[x]])
+        # if (grepl(" ", x) || grepl(":",x)) {
+        #     f <- formula(paste(y, "~", x))
+        #     df <- model.frame(formula(f), data = data)
+        #     colnames(df) <- c("x")
+        # } else {
+        #     df <- data.frame(x = data[[x]])
+        # }
+        if (grepl("`", x)) {
+            x <- gsub("`", "", x)
         }
         contingency.table <- table(df$x)
         total.number <- sum(contingency.table)
@@ -77,13 +80,18 @@ createSummary <- function(x,
         }
 
     } else if (y != "") {
-        if (grepl(" ", x) || grepl(":",x)) {
-            f <- formula(paste(y, "~", x))
-            df <- model.frame(formula(f), data = data)
-            colnames(df) <- c("y", "x")
-        } else {
-            df <- data.frame(y = data[[y]], x = data[[x]])
+        if (grepl("`", x)) {
+            x <- gsub("`", "", x)
         }
+        df <- data.frame(y = data[[y]], x = data[[x]])
+        # if (grepl(" ", x) || grepl(":",x)) {
+        # if (grepl(" ", x)) {
+        #     f <- formula(paste(y, "~", x))
+        #     df <- model.frame(formula(f), data = data)
+        #     colnames(df) <- c("y", "x")
+        # } else {
+        #     df <- data.frame(y = data[[y]], x = data[[x]])
+        # }
 
         exist.missing <- FALSE
 
@@ -107,8 +115,8 @@ createSummary <- function(x,
         }
 
         if (show.missing == TRUE && exist.missing == TRUE) {
-            x.level <- length(unique(origData[[x]]))
-        } else if (show.missing == TRUE && exist.missing == FALSE){
+            x.level <- length(unique(origData[[x]]))  # including NA -> 6
+        } else if (show.missing == TRUE && exist.missing == FALSE){  # -> 5
             x.level <- length(setdiff(unique(origData[[x]]), NA))
         } else{
             x.level <- length(setdiff(unique(origData[[x]]), NA))
@@ -116,8 +124,18 @@ createSummary <- function(x,
 
         variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
-        if (x.level <= max.x.level) {
-            variable.class <- 'categorical'
+        if (show.missing == TRUE && exist.missing == TRUE) {
+            if (x.level  - 1<= max.x.level) {
+                variable.class <- 'categorical'
+            }
+        } else if (show.missing == TRUE && exist.missing == FALSE) {
+            if (x.level <= max.x.level) {
+                variable.class <- 'categorical'
+            }
+        } else {
+            if (x.level <= max.x.level) {
+                variable.class <- 'categorical'
+            }
         }
 
         if (variable.class == 'continuous') {
@@ -158,7 +176,7 @@ createSummary <- function(x,
                     subgroup[[i]] <- ratio.table
                 }
             }
-            if (show.missing == T && exist.missing == F) {
+            if (show.missing == TRUE && exist.missing == FALSE) {
                 mat <- matrix(0, ncol = ncol(ratio))
                 colnames(mat) <- names(ratio[1,])
                 subgroup[[x.level + 1]] <- list(count = rep(0, length(subgroup.element.count)),

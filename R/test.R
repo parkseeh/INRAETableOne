@@ -1,4 +1,5 @@
- #data <- read.csv("dfTest.csv")
+
+data <- read.csv("dfTest.csv")
 
 #
 # INRAETableOne(
@@ -92,3 +93,16 @@
 #         Cortisol2_lever + Cortisol2_lever30, max.ylev=5,
 #     data = dfT0T4.analysis,
 # )
+
+# data <- readxl::read_excel("./../../Seehyun/BD_Nutrimémo_Finale.xls.xlsx")
+# data <- data %>% select("16:00_T0", "18:00_T0", "Sexe", "Groupe_ttt",
+#                         "Cortisol2_lever_T0","Cortisol2_lever30_T0") %>%
+#     mutate(Sexe=case_when(substr(Sexe,1,1) == "M" ~ "M",
+#                           substr(Sexe,1,1) == "F" ~ "F"))
+# colnames(data)[5] <- "Cortisol2_lever T0"
+# data$`Cortisol2_lever T0` <- as.numeric(data$`Cortisol2_lever T0`)
+#
+# INRAETableOne(Groupe_ttt + Sexe ~ `16:00_T0` + `Cortisol2_lever T0` + Cortisol2_lever30_T0, data)
+# INRAETableOne(Groupe_ttt + Sexe ~ ., data)
+
+

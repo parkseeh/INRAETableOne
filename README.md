@@ -21,8 +21,34 @@ by using `data()`
 ``` r
 library(INRAETableOne)
 data(pal)
+```
+In order to use INRAETableOne, the first argument needs to be a `formula` format.
 
-INRAETableOne(Groupe_ttt ~ ., pal)
+``` r
+INRAETableOne(Groupe_ttt ~ Age + Sexe + Poids + BMI + MMSE, data = pal)
+```
+
+```
+Summary descriptives table by 'Groupe_ttt'
+
+____________________________________ 
+         Placebo      Verum      p  
+         (n=364)     (n=366)  
+------------------------------------ 
+ Age   64.2 ± 2.9  64.1 ± 2.9  0.442
+ Sexe                          0.749
+  - F  224 (61.5%) 220 (60.1%)      
+  - M  140 (38.5%) 146 (39.9%)      
+ Poids 68.0 ± 12.0 67.7 ± 11.7 0.781
+ BMI   24.4 ± 2.6  24.4 ± 2.8  0.959
+ MMSE  28.7 ± 1.2  28.7 ± 1.2  0.697
+------------------------------------ 
+```
+If you want to include all the variables in the dataset, simply write a formula with `~ .`
+
+
+```
+INRAETableOne(Groupe_ttt ~ ., data = pal)
 ```
 
 ```
@@ -53,7 +79,7 @@ _________________________________________
 The `show.detail = T` will show more summary for the `continuous` variables such as min, max, and median.
 
 ``` r
-INRAETableOne(Groupe_ttt ~ ., pal, show.detail = T)
+INRAETableOne(Groupe_ttt ~ ., data = pal, show.detail = T)
 ```
 
 ```
@@ -104,7 +130,7 @@ You can also choose the maximum level of x level by setting `max.x.level` any nu
 For instance, if you put `max.x.level = 10`, the MMSE which contains only 8 different level of 
 factor will be considered as `categorical` variable.
 ```r
-INRAETableOne(Groupe_ttt ~ ., pal, max.x.level = 10)
+INRAETableOne(Groupe_ttt ~ ., data = pal, max.x.level = 10)
 ```
 
 ```
@@ -142,7 +168,7 @@ _________________________________________
 Also if you want to know whether there exists the missing variable, just put 
 `show.missing = T` as other argument.
 ``` r
-INRAETableOne(Groupe_ttt ~ ., pal, max.x.level = 10, show.missing = T)
+INRAETableOne(Groupe_ttt ~ ., data = pal, max.x.level = 10, show.missing = T)
 ```
 
 ```
@@ -184,7 +210,7 @@ You can add second y variable using `+` sign at the left hand side of
 `~` on the formula.
 
 ```
-INRAETableOne(Groupe_ttt + Period ~ ., pal)
+INRAETableOne(Groupe_ttt + Period ~ ., data = pal)
 ```
 
 ```

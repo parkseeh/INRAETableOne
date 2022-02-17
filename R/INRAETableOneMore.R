@@ -84,15 +84,27 @@ INRAETableOneMore <- function(formula,
                 sub.data <- data[data[[y1]] == uniquey[i],]
             }
 
-            summary.result <- createSummary(x = x.variable,
-                                            y = y2,
-                                            data = sub.data,
-                                            max.x.level = max.x.level,
-                                            show.total = show.total,
-                                            paired = paired,
-                                            show.missing = show.missing,
-                                            verbose = verbose,
-                                            origData = data)
+            summary.result <- tryCatch(
+                expr = {
+                    summary.result <- createSummary(x = x.variable,
+                                                    y = y2,
+                                                    data = sub.data,
+                                                    max.x.level = max.x.level,
+                                                    show.total = show.total,
+                                                    paired = paired,
+                                                    show.missing = show.missing,
+                                                    verbose = verbose,
+                                                    origData = data)
+                },
+                error = function(e){
+                    stop("Please change the maximum level of x variable")
+                }
+            )
+
+
+
+
+
 
             result.list[[x.variable]] <- summary.result
         }

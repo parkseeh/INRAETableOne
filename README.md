@@ -180,8 +180,8 @@ ___________________________________________
 ------------------------------------------- 
 ```
 
-Last but not least, you can add second y variable using + sign at the left hand side of 
-~ on the formula.
+Last but not least, you can add second y variable using `+` sign at the left hand side of 
+`~` on the formula.
 
 ```
 INRAETableOne(Groupe_ttt + Sexe ~ ., pal)

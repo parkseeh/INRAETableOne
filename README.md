@@ -208,6 +208,6 @@ _________________________________________________________________________
 ------------------------------------------------------------------------- 
 ```
 
-Last but not least, the `paired = T` will perform the two sample paired t-test to compare difference from T0 and T4. However, the
+Last but not least, the `paired = T` will perform the two sample paired t-test to compare difference between T0 and T4. However, the
 number of sample at T0 and T4 need to be equal. 
 

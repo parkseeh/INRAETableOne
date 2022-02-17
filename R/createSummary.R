@@ -26,32 +26,47 @@ createSummary <- function(x,
                           show.total = FALSE,
                           verbose = FALSE,
                           origData) {
-    # show.total=F; paired=F; show.missing=T; show.detail = F; verbose=F
+
     if (y == "") {
-        #reg.exp <- c(" ", ":")
-        # if (grepl(" ", x) || grepl(":",x)) {
-        #     f <- formula(paste(y, "~", x))
-        #     df <- model.frame(formula(f), data = data)
-        #     colnames(df) <- c("x")
-        # } else {
-        #     df <- data.frame(x = data[[x]])
-        # }
         if (grepl("`", x)) {
             x <- gsub("`", "", x)
         }
-        contingency.table <- table(df$x)
-        total.number <- sum(contingency.table)
-        variable.class <- ifelse(is.numeric(data[[x]]), 'continuous', 'categorical')
 
-        if (show.missing == TRUE) {
-            x.level <- length(unique(origData[[x]]))
+        df <- data.frame(x = data[[x]])
+
+        exist.missing <- FALSE
+
+        if (show.missing == TRUE) { # missing shown
+            if (any(is.na(df))) {
+                contingency.table <- table(df$x, useNA = 'ifany')
+                dimnames(contingency.table)[[1]][nrow(contingency.table)] <- 'Missing'
+                exist.missing <- TRUE
+            } else {
+                contingency.table <- table(df$x)
+                exist.missing <- FALSE
+            }
+
+            contingency.table.with.total <- addmargins(contingency.table, 1)
+            total.number <- sum(contingency.table)
+
         } else {
-            x.level <- length(setdiff(unique(origData[[x]]), NA))
+            contingency.table <- table(df$x)
+            contingency.table.with.total <- addmargins(contingency.table, 1)
+            total.number <- sum(contingency.table)
         }
 
+        variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
-        if (x.level <= max.x.level) {
-            variable.class <- 'categorical'
+        if (show.missing == TRUE && exist.missing == TRUE) {
+            x.level <- length(unique(origData[[x]]))
+            if (x.level - 1 <= max.x.level) {
+                variable.class <- 'categorical'
+            }
+        } else{
+            x.level <- length(setdiff(unique(origData[[x]]), NA))
+            if (x.level <= max.x.level) {
+                variable.class <- 'categorical'
+            }
         }
 
         if (variable.class == 'continuous') {
@@ -59,7 +74,7 @@ createSummary <- function(x,
             result <- result <- list(class = variable.class,
                                      count = total.number,
                                      summary.list = calculated.summary.list,
-                                     p = NA)
+                                     p.value = NA)
 
         } else if (variable.class == 'categorical') {
             contingency.table <- t(t(contingency.table))
@@ -76,22 +91,15 @@ createSummary <- function(x,
             result <- list(class = variable.class,
                            count = total.number,
                            subgroup = subgroup,
-                           p = NA)
+                           p.value = NA)
         }
 
     } else if (y != "") {
         if (grepl("`", x)) {
             x <- gsub("`", "", x)
         }
+
         df <- data.frame(y = data[[y]], x = data[[x]])
-        # if (grepl(" ", x) || grepl(":",x)) {
-        # if (grepl(" ", x)) {
-        #     f <- formula(paste(y, "~", x))
-        #     df <- model.frame(formula(f), data = data)
-        #     colnames(df) <- c("y", "x")
-        # } else {
-        #     df <- data.frame(y = data[[y]], x = data[[x]])
-        # }
 
         exist.missing <- FALSE
 
@@ -117,7 +125,7 @@ createSummary <- function(x,
         variable.class <- ifelse(is.numeric(df$x), 'continuous', 'categorical')
 
         if (show.missing == TRUE && exist.missing == TRUE) {
-            x.level <- length(unique(origData[[x]]))  # including NA -> 6
+            x.level <- length(unique(origData[[x]]))
             if (x.level - 1 <= max.x.level) {
                 variable.class <- 'categorical'
             }
@@ -127,21 +135,6 @@ createSummary <- function(x,
                 variable.class <- 'categorical'
             }
         }
-
-
-        # if (show.missing == TRUE && exist.missing == TRUE) {
-        #     if (x.level  - 1<= max.x.level) {
-        #         variable.class <- 'categorical'
-        #     }
-        # } else if (show.missing == TRUE && exist.missing == FALSE) {
-        #     if (x.level <= max.x.level) {
-        #         variable.class <- 'categorical'
-        #     }
-        # } else {
-        #     if (x.level <= max.x.level) {
-        #         variable.class <- 'categorical'
-        #     }
-        # }
 
         if (variable.class == 'continuous') {
             calculated.summary.list <- tapply(df$x, df$y, calculateSummary)
@@ -155,7 +148,7 @@ createSummary <- function(x,
             result <- list(class = variable.class,
                            count = total.number,
                            summary.list = calculated.summary.list,
-                           p = p.value)
+                           p.value = p.value)
 
         } else if (variable.class == 'categorical') {
             subgroup <- list()
@@ -195,7 +188,7 @@ createSummary <- function(x,
             result <- list(class = variable.class,
                            count = total.number,
                            subgroup = subgroup,
-                           p = p.value)
+                           p.value = p.value)
         }
     }
     return(result)

@@ -62,7 +62,7 @@ print.cbind.INRAETableOne <- function(x,...) {
         for (j in 2:(length(result[[i]]$n.counut))) {
             cat(centerprint(result[[i]]$n.counut[j], width = result[[i]]$column.length[j]+1))
         }
-        cat("      ")
+        cat("        ")
     }
     cat("\n")
     cat(tail.line,"\n")

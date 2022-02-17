@@ -38,7 +38,7 @@ makeTableOne <- function(obj, digits = 1) {
                 } else {
                     initial.matrix <- rbind(initial.matrix, add.matrix)
                 }
-                p.value <- c(p.value, obj[[i]]$p)
+                p.value <- c(p.value, obj[[i]]$p.value)
 
                 add.matrix <- matrix(NA, nrow = 2, ncol = obj$length)
 
@@ -75,7 +75,7 @@ makeTableOne <- function(obj, digits = 1) {
                     initial.matrix <- rbind(initial.matrix, add.matrix)
                 }
             } else {
-                p.value <- c(p.value, obj[[i]]$p)
+                p.value <- c(p.value, obj[[i]]$p.value)
                 for (j in 1:obj$length) {
                     temp <- paste(sprintf(fmt, obj[[i]]$summary.list[[j]][[1]]),
                                   plusminus,
@@ -102,7 +102,7 @@ makeTableOne <- function(obj, digits = 1) {
                 initial.matrix <- rbind(initial.matrix, add.matrix)
             }
 
-            p.value <- c(p.value, obj[[i]]$p)
+            p.value <- c(p.value, obj[[i]]$p.value)
 
             for (subgroup.idx in 1:length(obj[[i]]$subgroup)) {
                 subgroup.name <- names(obj[[i]]$subgroup[subgroup.idx])
@@ -145,7 +145,7 @@ makeTableOne <- function(obj, digits = 1) {
     p.value <- sapply(p.value,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
     sig <- sapply(p.value, p2sig)
     res <- data.frame(res,
-                      p = p.value,
+                      p.value = p.value,
                       sig = sig,
                       class = variable.class,
                       total.count = total.count)

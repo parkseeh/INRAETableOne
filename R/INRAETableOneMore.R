@@ -2,7 +2,7 @@
 #'
 #' It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
 #'
-#' @details
+#' @description
 #' The dependent and independent variable should be indicated as \code{formula} format.
 #' The formula may contain a dot (".") to refer to "all variables in \code{data}
 #' other than those that appear elsewhere in the formula".

@@ -44,12 +44,12 @@ the independent variable(s) on the right hand side of '~'.}
 An object of class "cbind.INRAETableOne".
 }
 \description{
-It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
-}
-\details{
 The dependent and independent variable should be indicated as \code{formula} format.
 The formula may contain a dot (".") to refer to "all variables in \code{data}
 other than those that appear elsewhere in the formula".
 The maximum combination of dependent variables are two, and can be formulated with
 '+' sign such as 'dependent1' + 'dependent2' ~ 'independent1' + 'independent2' + ....
+}
+\details{
+It produces a nicely formatted table of descriptive statistics for numeric or categorical variables
 }

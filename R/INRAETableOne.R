@@ -12,8 +12,8 @@
 #' Also it shows the p-value according to the type of independent variable. The
 #' p-value is carefully calculated regarding the number of sample, normality, homogeneity,
 #' and independency.  The calculation is based on the \code{t.test}, \code{wilcox.test},
-#' \code{kruskal.test}, and \code{anova} for continuous variable, and \code{chisq.test}
-#' and \code{fisher.test} for categorical variable.
+#' \code{kruskal.test}, and \code{anova} for continuous variable, whereas \code{chisq.test}
+#' and \code{fisher.test} are used for categorical variable.
 #'
 #' @param x A formula indicating the dependent variable(s) on the left hand side, and
 #' the independent variable(s) on the right hand side of '~'.
@@ -67,74 +67,36 @@ INRAETableOne.formula <- function(formula,
     if (missing(data)) {
         stop("Please indicate data argument")
     }
-
-
-    model.terms <- terms(formula, data = data)
-    x.variables <- labels(model.terms)
-
-
-    if (length(formula) > 2) {
-        y <- as.character(formula[[2]])
-
-        if (length(y) > 1) {
-            result <- INRAETableOneMore(formula = formula,
-                                        data = data,
-                                        max.x.level = max.x.level,
-                                        show.missing = show.missing,
-                                        paired = paired,
-                                        show.total = show.total,
-                                        show.detail = show.detail,
-                                        verbose = verbose,
-                                        origData = data)
-            return(result)
-        } else {
-            y.table <- table(data[[y]])
-
-            if (show.total == TRUE) {
-                y.table <- addmargins(y.table)
-                names(y.table)[length(y.table)] <- 'Total'
-            }
-
-            result.list <- list(y = y,
-                                names = names(y.table),
-                                count = unname(y.table),
-                                length = length(y.table),
-                                show.detail = show.detail)
-        }
-
-    } else {
-        y <- ""
-        result.list <- list(y = y,
-                            names = "Overall",
-                            count = nrow(data),
-                            length = 1,
-                            show.detail = show.detail)
+    if (is.numeric(max.x.level) == FALSE) {
+        stop("The parameter 'max.x.leve.' must be numeric")
+    }
+    if (show.missing != TRUE && show.missing != FALSE) {
+        stop("The parameter 'show.missing' must be a boolean.")
+    }
+    if (paired != TRUE && paired != FALSE) {
+        stop("The parameter 'paired' must be a boolean.")
+    }
+    if (show.total != TRUE && show.total != FALSE) {
+        stop("The parameter 'show.total' must be a boolean.")
+    }
+    if (show.detail != TRUE && show.detail != FALSE) {
+        stop("The parameter 'show.detail' must be a boolean.")
+    }
+    if (verbose != TRUE && verbose != FALSE) {
+        stop("The parameter 'verbose' must be a boolean.")
     }
 
+    result <- INRAETableOneMain(formula,
+                                data,
+                                max.x.level = max.x.level,
+                                show.missing = show.missing,
+                                paired = paired,
+                                show.total = show.total,
+                                show.detail = show.detail,
+                                verbose = verbose,
+                                origData)
 
-    for (x.variable in x.variables) {
-        if (grepl("`", x.variable)) {
-            x.variable <- gsub("`", "", x.variable)
-        }
-        summary.result <- createSummary(x = x.variable,
-                                        y = y,
-                                        data = data,
-                                        max.x.level = max.x.level,
-                                        show.missing = show.missing,
-                                        paired = paired,
-                                        show.total = show.total,
-                                        verbose = verbose,
-                                        origData = data)
 
-        if (length(summary.result) != 4) {
-            print('The summary result does not contain 4 element.')
-            next
-        }
-        result.list[[x.variable]] <- summary.result
-    }
-
-    result <- makeTableOne(result.list, digits = 1)
-    class(result) <- 'INRAETableOne'
     return(result)
 }
 

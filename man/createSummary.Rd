@@ -9,7 +9,7 @@ createSummary(
   y,
   data,
   max.x.level = 5,
-  show.missing = TRUE,
+  show.missing = FALSE,
   paired = FALSE,
   show.total = FALSE,
   verbose = FALSE,

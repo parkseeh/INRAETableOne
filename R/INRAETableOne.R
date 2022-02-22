@@ -48,7 +48,6 @@ INRAETableOne <- function(x, ...) {
 
 #' INRAETableOne S3 Method for formula
 #' @describeIn INRAETableOne The \code{formula} interface.
-#' @importFrom stats terms addmargins
 #' @export
 INRAETableOne.formula <- function(formula,
                                   data,
@@ -68,7 +67,7 @@ INRAETableOne.formula <- function(formula,
         stop("Please indicate data argument")
     }
     if (is.numeric(max.x.level) == FALSE) {
-        stop("The parameter 'max.x.leve.' must be numeric")
+        stop("The parameter 'max.x.level' must be numeric")
     }
     if (show.missing != TRUE && show.missing != FALSE) {
         stop("The parameter 'show.missing' must be a boolean.")

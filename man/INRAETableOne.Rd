@@ -56,8 +56,8 @@ The maximum combination of dependent variables are two, and can be formulated wi
 Also it shows the p-value according to the type of independent variable. The
 p-value is carefully calculated regarding the number of sample, normality, homogeneity,
 and independency.  The calculation is based on the \code{t.test}, \code{wilcox.test},
-\code{kruskal.test}, and \code{anova} for continuous variable, and \code{chisq.test}
-and \code{fisher.test} for categorical variable.
+\code{kruskal.test}, and \code{anova} for continuous variable, whereas \code{chisq.test}
+and \code{fisher.test} are used for categorical variable.
 }
 \details{
 It produces a nicely formatted table of descriptive statistics for numeric or categorical variables

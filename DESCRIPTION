@@ -1,7 +1,7 @@
 Package: INRAETableOne
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.1
+Title: Generate the descriptive statistics table
+Version: 1.0.1
 Authors@R: person(given = "SeeHyun",
             family = "Park",
             email="parkseeh0226@gmail.com",

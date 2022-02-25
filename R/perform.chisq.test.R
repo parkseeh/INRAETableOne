@@ -18,12 +18,12 @@ perform.chisq.test <- function(x, y, paired = FALSE, verbose = FALSE) {
 
     } else {
         if (paired == TRUE) {
-            if (all(dim(contingency.table) == c(2,2))){
+            if (all(dim(contingency.table) == c(2,2)) && colnames(contingency.table) == rownames(contingency.table)){
                 p.value <- mcnemar.test(contingency.table)$p.value
                 return(p.value)
             } else {
                 if (verbose == TRUE) {
-                    message("The contingency table is not 2 X 2 matrix. Forced to do paired test")
+                    message("The table is not appropriate for Ncnemar Test!")
                 }
                 paired = FALSE
                 #return(invisible())

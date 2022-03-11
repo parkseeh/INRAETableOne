@@ -152,7 +152,8 @@ makeTableOne <- function(obj, digits = 1) {
     colnames(res)[2:(1+length(obj$names))] <- obj$names
     colnames(res)[1] <- obj$y
 
-    result <- list(res = res,
+    result <- list(call = obj$call,
+                   res = res,
                    length = obj$length,
                    count = obj$count)
     return(result)

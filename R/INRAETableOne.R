@@ -99,4 +99,10 @@ INRAETableOne.formula <- function(formula,
     return(result)
 }
 
+#'@describeIn INRAETableOne default S3 method
+#'@export
+INRAETableOne.data.frame <- function(x,...){
+    INRAETableOne(~.,x,...)
+}
+
 

@@ -80,7 +80,7 @@ INRAETableOneMain <- function(formula,
     }
 
     result <- makeTableOne(result.list, digits = 1)
-    class(result) <- 'INRAETableOne'
+    class(result) <- c("INRAETableOne", "data.frame")
 
     return(result)
 }

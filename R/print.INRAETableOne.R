@@ -49,3 +49,4 @@ print.INRAETableOne <- function(x, ...) {
     }
     cat(tail.line, '\n\n')
 }
+

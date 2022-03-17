@@ -101,11 +101,6 @@ INRAETableOneMore <- function(formula,
                 }
             )
 
-
-
-
-
-
             result.list[[x.variable]] <- summary.result
         }
         result <- makeTableOne(result.list, digits = 1)

@@ -85,6 +85,8 @@ INRAETableOne.formula <- function(formula,
         stop("The parameter 'verbose' must be a boolean.")
     }
 
+    cl <- match.call()
+    cl[[1]] <- as.name("INRAETableOne")
     result <- INRAETableOneMain(formula,
                                 data,
                                 max.x.level = max.x.level,
@@ -94,6 +96,7 @@ INRAETableOne.formula <- function(formula,
                                 show.detail = show.detail,
                                 verbose = verbose,
                                 origData)
+    #result$call <- cl
 
 
     return(result)

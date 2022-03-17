@@ -15,13 +15,24 @@ INRAETableOneMain <- function(formula,
         printLog("Making INRAETable!!")
     }
 
+
     model.terms <- terms(formula, data = data)
     x.variables <- labels(model.terms)
+    check.variable <- x.variables %in% colnames(data)
+
+    if (!all(check.variable)) {
+        idx <- which(check.variable == FALSE)
+        if (length(idx) > 1) {
+            cat(paste0("The variables '", paste(x.variables[idx], collapse=' & '), "' are invalid, Please check the variable name \n"))
+        } else {
+            cat(paste0("The variable '", x.variables[idx], "' is invalid, please check the variable name \n"))
+        }
+        return(invisible())
+    }
 
 
     if (length(formula) > 2) {
         y <- as.character(formula[[2]])
-
         if (length(y) > 1) {
             result <- INRAETableOneMore(formula = formula,
                                         data = data,

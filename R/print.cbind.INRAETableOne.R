@@ -40,7 +40,6 @@ print.cbind.INRAETableOne <- function(x,...) {
         } else {
             temp <- tnames[i]
         }
-        #browser()
         cat(centerprint(temp, width = result[[i]]$line.length - result[[i]]$column.length[1] + 1))
     }
     cat("\n")

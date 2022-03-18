@@ -18,6 +18,11 @@ INRAETableOneMain <- function(formula,
 
     model.terms <- terms(formula, data = data)
     x.variables <- labels(model.terms)
+    if (any(grepl("`", x.variables) == T)) {
+        x.variables <- gsub("`", "", x.variables)
+    }
+
+
     check.variable <- x.variables %in% colnames(data)
 
     if (!all(check.variable)) {

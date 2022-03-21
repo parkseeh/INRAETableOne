@@ -8,20 +8,24 @@
 #' @export
 print.cbind.INRAETableOne <- function(x,...) {
     obj <- x
+    obj_copy <- obj
     tcount <- length(obj) # number of tables
     tnames <- unlist(attr(obj,"caption"))
     group <- attr(obj,"group")
     result <- list()
 
+
     for (i in 1:tcount) {
-        result[[i]] <- lineCount(obj[[i]])
+        class(obj_copy[[i]]) <- "data.frame"
+        result[[i]] <- lineCount((obj_copy[[i]]))
     }
+
+
 
     line.length <- 0
     for (i in 1:tcount) {
         line.length <- line.length + result[[i]]$line.length - result[[i]]$column.length[1] - 1
     }
-
     line.length <- result[[1]]$column.length[1] + line.length + tcount
     cat("\n")
 

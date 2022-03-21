@@ -3,9 +3,9 @@
 #' @export
 lineCount <- function(x, ...) {
     obj <- x
-    result.table <- obj$res[1:(length(obj$res)-3)]
+    result.table <- obj[1:length(obj)-1]
 
-    count.total <- obj$count
+    count.total <- attr(obj,"count")
     column.names <- colnames(result.table)
     y <- column.names[1]
     column.names[1] <- ""

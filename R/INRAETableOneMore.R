@@ -104,9 +104,13 @@ INRAETableOneMore <- function(formula,
             result.list[[x.variable]] <- summary.result
         }
         result <- makeTableOne(result.list, digits = 1)
-        class(result) <- "INRAETableOne"
+        class(result) <- c("INRAETableOne", "data.frame")
         out[[i]] <- result
     }
+
+
+
+
 
     if (ycount == 2) {
         final.out <- cbind(out[[1]], out[[2]], caption = uniquey, y = y)

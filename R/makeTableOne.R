@@ -144,19 +144,26 @@ makeTableOne <- function(obj, digits = 1) {
     }
     p.value <- sapply(p.value,function(x) ifelse(is.na(x),"",sprintf("%.3f",x)))
     sig <- sapply(p.value, p2sig)
+    # res <- data.frame(res,
+    #                   p.value = p.value,
+    #                   sig = sig,
+    #                   class = variable.class,
+    #                   total.count = total.count)
     res <- data.frame(res,
                       p.value = p.value,
-                      sig = sig,
-                      class = variable.class,
-                      total.count = total.count)
+                      sig = sig)
+
     colnames(res)[2:(1+length(obj$names))] <- obj$names
     colnames(res)[1] <- obj$y
+    attr(res, "call") <- obj$call
+    attr(res, "length") <- obj$length
+    attr(res, "count") <- obj$count
 
-    result <- list(call = obj$call,
-                   res = res,
-                   length = obj$length,
-                   count = obj$count)
-    return(result)
+    # result <- list(call = obj$call,
+    #                res = res,
+    #                length = obj$length,
+    #                count = obj$count)
+    return(res)
 
 }
 

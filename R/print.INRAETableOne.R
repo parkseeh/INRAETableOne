@@ -3,13 +3,16 @@
 #'
 #' @export
 print.INRAETableOne <- function(x, ...) {
+
     obj <- x
     result <- lineCount(obj)
     y <- result$y
     line.length <- result$line.length
     head.line <- paste(rep("_", line.length+1), collapse = "")
     tail.line <- paste(rep("-", line.length+1), collapse = "")
-    if (obj$length == 1) {
+
+
+    if (attr(obj, "length") == 1) {
         res <- result$res[1:(length(result$res)-1)]
         column.names <- result$column.names[1:(length(result$column.names)-1)]
         n.count <- result$n.counut[1:(length(result$n.counut)-1)]
@@ -41,6 +44,7 @@ print.INRAETableOne <- function(x, ...) {
     cat("\n")
     cat(tail.line, "\n")
 
+
     for (i in 1:dim(res)[1]){
         for(j in 1:length(column.names)){
             cat(sapply(res[i,j], centerprint, width = column.length[j] + 1))
@@ -49,4 +53,3 @@ print.INRAETableOne <- function(x, ...) {
     }
     cat(tail.line, '\n\n')
 }
-

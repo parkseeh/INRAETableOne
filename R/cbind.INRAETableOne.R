@@ -3,7 +3,7 @@
 #' @param y A name of grouping variable
 #'
 #' @export
-cbind.INRAETableOne <- function(..., caption, y = NULL) {
+cbind.INRAETableOne <- function(..., caption = NULL, y = NULL) {
 
     args <- list(...)
     out <- args
@@ -12,9 +12,24 @@ cbind.INRAETableOne <- function(..., caption, y = NULL) {
                                                            "[No groups]", paste("By", attr(vv, "yname")))))
     }
 
+
+    out.data.frame <- map2_dfc(out, 1:length(out), function(df, i) {
+        result <- as.data.frame(out[[i]])
+        if (i > 1) {
+            result <- result[,2:length(result)]
+        }
+        return(result)
+    })
+
+    #print(out.data.frame)
+    attr(out, "table") <- out.data.frame
+
+
+
     attr(out, "caption") <- caption
     attr(out, "group") <- y
-    class(out) <- "cbind.INRAETableOne"
+    #class(out) <- c("cbind.INRAETableOne")
+    class(out) <- c("cbind.INRAETableOne", "INRAETableOne", "data.frame")
     return(out)
 }
 

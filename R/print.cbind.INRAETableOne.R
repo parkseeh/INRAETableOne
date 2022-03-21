@@ -21,7 +21,6 @@ print.cbind.INRAETableOne <- function(x,...) {
     }
 
 
-
     line.length <- 0
     for (i in 1:tcount) {
         line.length <- line.length + result[[i]]$line.length - result[[i]]$column.length[1] - 1

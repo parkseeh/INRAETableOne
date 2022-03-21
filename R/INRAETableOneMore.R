@@ -109,9 +109,6 @@ INRAETableOneMore <- function(formula,
     }
 
 
-
-
-
     if (ycount == 2) {
         final.out <- cbind(out[[1]], out[[2]], caption = uniquey, y = y)
     } else if (ycount == 3) {

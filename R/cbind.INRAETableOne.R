@@ -3,7 +3,7 @@
 #' @param y A name of grouping variable
 #'
 #' @export
-cbind.INRAETableOne <- function(..., caption, y = NULL) {
+cbind.INRAETableOne <- function(..., caption=NULL, y = NULL) {
 
     args <- list(...)
     out <- args

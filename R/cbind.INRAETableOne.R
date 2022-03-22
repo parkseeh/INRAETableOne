@@ -27,7 +27,6 @@ cbind.INRAETableOne <- function(..., caption = NULL, y = NULL) {
         return(result)
     })
 
-    y[1]
     attr(out, "table") <- out.data.frame
     attr(out, "caption") <- caption
     attr(out, "group") <- y

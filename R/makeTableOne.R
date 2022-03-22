@@ -149,9 +149,14 @@ makeTableOne <- function(obj, digits = 1) {
     #                   sig = sig,
     #                   class = variable.class,
     #                   total.count = total.count)
-    res <- data.frame(res,
-                      p.value = p.value,
-                      sig = sig)
+
+    if (obj$length == 1) {
+        res <- data.frame(res)
+    } else {
+        res <- data.frame(res,
+                          p.value = p.value,
+                          sig = sig)
+    }
 
     colnames(res)[2:(1+length(obj$names))] <- obj$names
     colnames(res)[1] <- obj$y

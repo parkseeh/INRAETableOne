@@ -13,6 +13,7 @@ INRAETableOneMore(
   show.total = FALSE,
   show.detail = FALSE,
   verbose = FALSE,
+  digits = 1,
   origData = NULL
 )
 }

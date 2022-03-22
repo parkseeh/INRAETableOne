@@ -9,6 +9,7 @@ INRAETableOneMain <- function(formula,
                               show.total = FALSE,
                               show.detail = FALSE,
                               verbose = FALSE,
+                              digits = 1,
                               origData) {
 
     if (verbose == TRUE) {
@@ -20,6 +21,16 @@ INRAETableOneMain <- function(formula,
     x.variables <- labels(model.terms)
     if (any(grepl("`", x.variables) == T)) {
         x.variables <- gsub("`", "", x.variables)
+    }
+
+    for (x.variable in x.variables) {
+        if (all(is.na(data[[x.variable]]) == TRUE)) {
+            cat(paste0("'", x.variable,"'", " contains all missing values, therefore removed from data \n"))
+            data[[x.variable]] <- NULL
+            model.terms <- terms(formula, data = data)
+            x.variables <- labels(model.terms)
+        }
+
     }
 
 
@@ -47,6 +58,7 @@ INRAETableOneMain <- function(formula,
                                         show.total = show.total,
                                         show.detail = show.detail,
                                         verbose = verbose,
+                                        digits = digits,
                                         origData = data)
             return(result)
         } else {
@@ -95,7 +107,7 @@ INRAETableOneMain <- function(formula,
         result.list[[x.variable]] <- summary.result
     }
 
-    result <- makeTableOne(result.list, digits = 1)
+    result <- makeTableOne(result.list, digits = digits)
     class(result) <- c("INRAETableOne", "data.frame")
 
     return(result)

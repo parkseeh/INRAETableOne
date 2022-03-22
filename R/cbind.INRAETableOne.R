@@ -2,6 +2,8 @@
 #' @param caption A unique value of grouping variable
 #' @param y A name of grouping variable
 #'
+#' @importFrom purrr map2_dfc
+#'
 #' @export
 
 
@@ -16,7 +18,7 @@ cbind.INRAETableOne <- function(..., caption = NULL, y = NULL) {
     }
 
     options(warn = -1)
-    out.data.frame <- map2_dfc(out, 1:length(out), function(df, i) {
+    out.data.frame <- purrr::map2_dfc(out, 1:length(out), function(df, i) {
         result <- as.data.frame(out[[i]])
         names(result)[2:length(result)] <- paste0(names(result),"_", caption[i])
         if (i > 1) {

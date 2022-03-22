@@ -11,28 +11,17 @@ print.INRAETableOne <- function(x, ...) {
     head.line <- paste(rep("_", line.length+1), collapse = "")
     tail.line <- paste(rep("-", line.length+1), collapse = "")
 
+    res <- result$res
+    column.names <- result$column.names
+    n.count <- result$n.counut
+    column.length <- result$column.length
+    line.length <- result$line.length
 
-    if (attr(obj, "length") == 1) {
-        res <- result$res[1:(length(result$res)-1)]
-        column.names <- result$column.names[1:(length(result$column.names)-1)]
-        n.count <- result$n.counut[1:(length(result$n.counut)-1)]
-        column.length <- result$column.length[1:(length(result$column.length)-1)]
-        cat("\n")
-        cat(centerprint(paste0("Over all Summary descriptives table"), width = line.length))
-        cat("\n\n")
-        cat(head.line, "\n")
-    } else {
-        res <- result$res
-        column.names <- result$column.names
-        n.count <- result$n.counut
-        column.length <- result$column.length
-        line.length <- result$line.length
+    cat("\n")
+    cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))
+    cat("\n\n")
+    cat(head.line, "\n")
 
-        cat("\n")
-        cat(centerprint(paste0("Summary descriptives table by '", y, "'"), width = line.length))
-        cat("\n\n")
-        cat(head.line, "\n")
-    }
 
     for (i in 1:length(column.names)) {
         cat((centerprint(column.names[i], width = column.length[i]+1)))

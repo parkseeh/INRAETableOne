@@ -3,6 +3,7 @@
 \name{INRAETableOne}
 \alias{INRAETableOne}
 \alias{INRAETableOne.formula}
+\alias{INRAETableOne.data.frame}
 \title{Generate the descriptive statistics table}
 \usage{
 INRAETableOne(x, ...)
@@ -16,8 +17,11 @@ INRAETableOne(x, ...)
   show.total = FALSE,
   show.detail = FALSE,
   verbose = FALSE,
+  digits = 1,
   origData
 )
+
+\method{INRAETableOne}{data.frame}(x, ...)
 }
 \arguments{
 \item{x}{A formula indicating the dependent variable(s) on the left hand side, and
@@ -42,6 +46,8 @@ summary statistics value such as min, max, and median.}
 
 \item{verbose}{A Boolean expression (T/F) whether to print the log messages for
 every step.}
+
+\item{digits}{A number of decimal digits}
 }
 \value{
 An object of class "INRAETableOne".
@@ -65,6 +71,8 @@ It produces a nicely formatted table of descriptive statistics for numeric or ca
 \section{Methods (by class)}{
 \itemize{
 \item \code{formula}: The \code{formula} interface.
+
+\item \code{data.frame}: default S3 method
 }}
 
 \examples{

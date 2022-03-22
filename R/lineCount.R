@@ -3,7 +3,12 @@
 #' @export
 lineCount <- function(x, ...) {
     obj <- x
-    result.table <- obj[1:length(obj)-1]
+    if (attr(obj, "length") == 1) {
+        result.table <- obj[1:length(obj)]
+    } else {
+        result.table <- obj[1:length(obj)-1]
+    }
+
 
     count.total <- attr(obj,"count")
     column.names <- colnames(result.table)

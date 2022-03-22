@@ -36,6 +36,7 @@ INRAETableOneMore <- function(formula,
                               show.total = FALSE,
                               show.detail = FALSE,
                               verbose = FALSE,
+                              digits = 1,
                               origData = NULL) {
 
     if (is.null(origData)) {
@@ -103,7 +104,7 @@ INRAETableOneMore <- function(formula,
 
             result.list[[x.variable]] <- summary.result
         }
-        result <- makeTableOne(result.list, digits = 1)
+        result <- makeTableOne(result.list, digits = digits)
         class(result) <- c("INRAETableOne", "data.frame")
         out[[i]] <- result
     }

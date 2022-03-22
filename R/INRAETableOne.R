@@ -30,6 +30,7 @@
 #' summary statistics value such as min, max, and median.
 #' @param verbose A Boolean expression (T/F) whether to print the log messages for
 #' every step.
+#' @param digits A number of decimal digits
 #' @param ... further arguments to be passed to or from methods.
 #'
 #' @return An object of class "INRAETableOne".
@@ -57,6 +58,7 @@ INRAETableOne.formula <- function(formula,
                                   show.total = FALSE,
                                   show.detail = FALSE,
                                   verbose = FALSE,
+                                  digits = 1,
                                   origData) {
 
     if (!inherits(formula, "formula")) {
@@ -95,6 +97,7 @@ INRAETableOne.formula <- function(formula,
                                 show.total = show.total,
                                 show.detail = show.detail,
                                 verbose = verbose,
+                                digits = digits,
                                 origData)
     #result$call <- cl
 

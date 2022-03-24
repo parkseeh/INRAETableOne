@@ -23,16 +23,6 @@ INRAETableOneMain <- function(formula,
         x.variables <- gsub("`", "", x.variables)
     }
 
-    for (x.variable in x.variables) {
-        if (all(is.na(data[[x.variable]]) == TRUE)) {
-            cat(paste0("'", x.variable,"'", " contains all missing values, therefore removed from data \n"))
-            data[[x.variable]] <- NULL
-            model.terms <- terms(formula, data = data)
-            x.variables <- labels(model.terms)
-        }
-
-    }
-
 
     check.variable <- x.variables %in% colnames(data)
 
@@ -45,6 +35,18 @@ INRAETableOneMain <- function(formula,
         }
         return(invisible())
     }
+
+    for (x.variable in x.variables) {
+        if (all(is.na(data[[x.variable]]) == TRUE)) {
+            cat(paste0("'", x.variable,"'", " contains all missing values, therefore removed from data \n"))
+            data[[x.variable]] <- NULL
+            model.terms <- terms(formula, data = data)
+            x.variables <- labels(model.terms)
+        }
+
+    }
+
+
 
 
     if (length(formula) > 2) {

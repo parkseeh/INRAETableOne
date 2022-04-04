@@ -71,7 +71,7 @@ createSummary <- function(x,
 
         if (variable.class == 'continuous') {
             calculated.summary.list <- lapply(df, calculateSummary)
-            result <- result <- list(class = variable.class,
+            result <- list(class = variable.class,
                                      count = total.number,
                                      summary.list = calculated.summary.list,
                                      p.value = NA)
@@ -79,12 +79,22 @@ createSummary <- function(x,
         } else if (variable.class == 'categorical') {
             contingency.table <- t(t(contingency.table))
             subgroup <- list()
-            for (i in 1:x.level) {
-                subgroup.element.count <- contingency.table[i, ]
-                attr(subgroup.element.count, "names") <- NULL
-                ratio <- apply(contingency.table, 2, function(x) x * 100 / sum(x))
-                ratio.table <- list(count = subgroup.element.count, ratio = ratio[i,])
-                subgroup[[i]] <- ratio.table
+            if (x.level != 1) {
+                for (i in 1:x.level) {
+                    subgroup.element.count <- contingency.table[i, ]
+                    attr(subgroup.element.count, "names") <- NULL
+                    ratio <- apply(contingency.table, 2, function(x) x * 100 / sum(x))
+                    ratio.table <- list(count = subgroup.element.count, ratio = ratio[i,])
+                    subgroup[[i]] <- ratio.table
+                }
+            } else {
+                for (i in 1:x.level) {
+                    subgroup.element.count <- contingency.table[i, ]
+                    attr(subgroup.element.count, "names") <- NULL
+                    ratio <- apply(contingency.table, 2, function(x) x * 100 / sum(x))
+                    ratio.table <- list(count = subgroup.element.count, ratio = ratio)
+                    subgroup[[i]] <- ratio.table
+                }
             }
 
             names(subgroup) <- rownames(contingency.table)

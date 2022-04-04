@@ -29,9 +29,9 @@ INRAETableOneMain <- function(formula,
     if (!all(check.variable)) {
         idx <- which(check.variable == FALSE)
         if (length(idx) > 1) {
-            cat(paste0("The variables '", paste(x.variables[idx], collapse=' & '), "' are invalid, Please check the variable name \n"))
+            cat(paste0("The variables '", paste(x.variables[idx], collapse=' & '), "' are not found, Please check the variable name \n"))
         } else {
-            cat(paste0("The variable '", x.variables[idx], "' is invalid, please check the variable name \n"))
+            cat(paste0("The variable '", x.variables[idx], "' is not found, please check the variable name \n"))
         }
         return(invisible())
     }

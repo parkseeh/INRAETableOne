@@ -20,7 +20,7 @@ cbind.INRAETableOne <- function(..., caption = NULL, y = NULL) {
     options(warn = -1)
     out.data.frame <- purrr::map2_dfc(out, 1:length(out), function(df, i) {
         result <- as.data.frame(out[[i]])
-        names(result)[2:length(result)] <- paste0(names(result),"_", caption[i])
+        names(result)[1:length(result)] <- paste0(names(result),"_", caption[i])
         if (i > 1) {
             result <- result[,2:length(result)]
         }

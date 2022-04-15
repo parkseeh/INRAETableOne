@@ -5,8 +5,6 @@
 #' @importFrom purrr map2_dfc
 #'
 #' @export
-
-
 cbind.INRAETableOne <- function(..., caption = NULL, y = NULL) {
 
 
